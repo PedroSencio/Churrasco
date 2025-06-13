@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Churrasco Eng em Formação</title>
+  <style>
+    <style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  header img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+  }
+
+  h1.title {
+    text-align: center;
+    margin: 20px 0 10px;
+    font-size: 1.8rem;
+    color: #ffffff;
+  }
+
+  .event-info-text {
+    background-color: #1e1e1e;
+    padding: 16px;
+    border-radius: 10px;
+    margin: 20px 0;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+  }
+
+  .info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  a.add-calendar {
+    color: #4dabf7;
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 10px;
+    display: inline-block;
+  }
+
+  a.add-calendar:hover {
+    text-decoration: underline;
+  }
+
+  .location, .description {
+    margin: 10px 0;
+    color: #ccc;
+  }
+
+  .description {
+    background-color: #1c1c1c;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.03);
+  }
+
+  .buy-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    background-color: #4dabf7;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 24px;
+    transition: background-color 0.3s ease;
+  }
+
+  .voltar-btn {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.voltar-btn:hover {
+  background-color: #555;
+}
+
+.ingresso-box {
+  background-color: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.03);
+}
+
+.ingresso-box h3 {
+  color: #90cdf4;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.ingresso-box label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.ingresso-box input,
+.ingresso-box select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #222;
+  color: #eee;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+
+  label {
+    font-weight: 600;
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 4px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background-color: #222;
+    color: #eee;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #4dabf7;
+    background-color: #2a2a2a;
+  }
+
+  .resumo-box, .pix-box {
+    background-color: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    color: #ccc;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.04);
+  }
+
+  .resumo-box p, .pix-box p {
+    margin: 6px 0;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #444;
+    margin: 12px 0;
+  }
+
+  button#continue-btn, button#submit-btn, button#confirmar-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    border: none;
+    background-color: #4dabf7;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #339af0;
+  }
+
+  @media screen and (max-width: 600px) {
+    .container {
+      padding: 16px;
+    }
+  }
+</style>
+
+  </style>
+</head>
+<body>
+  <div class="container" id="main-container">
+
+    <!-- PÁGINA INICIAL -->
+    <div id="inicio">
+      <header>
+        <img src="f5701a78-65cb-4bb0-a3a1-b931c9f25da1.jpg" alt="Churrasco Eng em Formação Banner" />
+      </header>
+      <h1 class="title">Churrasco Eng em Formação</h1>
+      <div class="event-info-text">
+        <div class="info"><span>📅</span> 23/08/2025</div>
+        <div class="info"><span>⏰</span> 10:30</div>
+        <a href="#" class="add-calendar" id="google-calendar-link">Adicionar ao calendário</a>
+        <div class="location">
+          <p><strong>Rua Emílio Roli, 200</strong></p>
+          <p>Vila Gomes Cardim, Ourinhos – SP</p>
+        </div>
+      </div>
+      <div class="description">
+        <p><strong>Descrição do evento</strong></p>
+        <p>
+          Chegou a hora de garantir o seu ingresso pro nosso CHURRASCO ENG EM FORMAÇÃO! 🔥🥩<br />
+          Dia 23/08/2025 – a partir das 10h30<br />
+          📍 R. Emílio Roli, 200 – Vila Gomes Cardim, Ourinhos – SP
+        </p>
+        <p>
+          Preencha os campos abaixo com suas informações, escolha a quantidade e o tipo de ingresso desejado e garanta já sua presença nesse evento que vai marcar a nossa jornada rumo ao CREA! 🎓💥
+        </p>
+        <p>
+          📌 Atenção: Todos os ingressos precisam conter nome completo, CPF, data de nascimento e o tipo de ingresso. As informações serão usadas exatamente como preenchidas!
+        </p>
+        <p>
+          🎟 Tipos de ingresso:<br />
+          Ingresso 1 – Adulto com bebida alcoólica inclusa: R$ 90,00<br />
+          Ingresso 2 – Adulto sem bebida alcoólica: R$ 70,00<br />
+          Ingresso 3 – Criança: R$ 60,00
+        </p>
+        <p>
+          🧊 Quem quiser levar sua bebida e cooler, fique à vontade!<br />
+          🍻 Quem não quiser se preocupar com nada, é só garantir o ingresso completo!
+        </p>
+        <p>
+          📆 Os ingressos serão vendidos por lote – não perca o prazo!
+        </p>
+        <p>
+          💬 Qualquer dúvida, chama a comissão!<br />
+          Agora é só preencher, fazer o pix e se preparar pro melhor churras da engenharia! 💥
+        </p>
+      </div>
+      <button class="buy-btn" id="btn-comprar">COMPRAR</button>
+
+    </div>
+
+    <!-- FORMULÁRIO DE COMPRA -->
+    <div id="form-compra" style="display:none;">
+      <h1 class="title">Compra de Ingressos</h1>
+      <label for="quantidade">Quantidade de ingressos:</label>
+      <input type="number" id="quantidade" min="1" max="10" required />
+      <button id="continue-btn">Continuar</button>
+      <form id="formulario" style="display:none;">
+        <div id="ingressos"></div>
+        <button type="submit" id="submit-btn">Finalizar Compra</button>
+        <button type="button" class="voltar-btn" id="voltar-btn">← Voltar</button>
+      </form>
+    </div>
+
+    <!-- FECHAMENTO DE CARRINHO -->
+    <div id="resumo-final" style="display:none;">
+      <h1 class="title">Fechamento de Carrinho</h1>
+      <div class="resumo-box" id="detalhes-resumo"></div>
+      <div class="pix-box">
+        <p><strong>Pagamento via Pix</strong></p>
+        <p>Chave Pix: 36384701804</p>
+        <p>Nome do recebedor: Anna Beatriz Botin da Silva</p>
+      </div>
+      <button class="buy-btn" id="confirmar-btn">Confirmar Compra</button>
+      <button type="button" class="voltar-btn" id="voltar-btn">← Voltar</button>
+    </div>
+  </div>
+
+<script>
+  // Botão de compra
+  document.getElementById('btn-comprar').addEventListener('click', () => {
+    document.getElementById('inicio').style.display = 'none';
+    document.getElementById('form-compra').style.display = 'block';
+  });
+
+  // Gerar campos de ingresso
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    const qtd = parseInt(document.getElementById('quantidade').value);
+    if (!qtd || qtd < 1 || qtd > 10) {
+      alert('Informe uma quantidade válida entre 1 e 10.');
+      return;
+    }
+    const container = document.getElementById('ingressos');
+    container.innerHTML = '';
+    for (let i = 1; i <= qtd; i++) {
+      container.innerHTML += `
+        <div class="ingresso-box">
+          <h3>Ingresso ${i}</h3>
+          <label for="nome_${i}">Nome completo:</label>
+          <input type="text" id="nome_${i}" required autocomplete="name" />
+          <label for="cpf_${i}">CPF:</label>
+          <input type="text" id="cpf_${i}" required maxlength="14" placeholder="000.000.000-00" />
+          <label for="dtnasc_${i}">Data de nascimento:</label>
+          <input type="date" id="dtnasc_${i}" required max="${new Date().toISOString().split('T')[0]}" />
+          <label for="tipo_${i}">Tipo de ingresso:</label>
+          <select id="tipo_${i}" required>
+            <option value="">Selecione</option>
+            <option value="1">Adulto (com bebida) - R$90</option>
+            <option value="2">Adulto (sem bebida) - R$70</option>
+            <option value="3">Criança - R$60</option>
+          </select>
+        </div>`;
+    }
+    document.getElementById('formulario').style.display = 'block';
+  });
+
+  // Finalizar e mostrar resumo
+  document.getElementById('formulario').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const qtd = parseInt(document.getElementById('quantidade').value);
+    let total = 0;
+    let html = '';
+    for (let i = 1; i <= qtd; i++) {
+      const nome = document.getElementById(`nome_${i}`).value.trim();
+      const cpf = document.getElementById(`cpf_${i}`).value.trim();
+      const nasc = document.getElementById(`dtnasc_${i}`).value;
+      const tipoVal = document.getElementById(`tipo_${i}`).value;
+      const tipoText = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
+      const valor = tipoVal === "1" ? 90 : tipoVal === "2" ? 70 : 60;
+      total += valor;
+      html += `<p><strong>Ingresso ${i}:</strong> ${tipoText}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
+    }
+    html += `<p><strong>Total: R$${total}</strong></p>`;
+    document.getElementById('detalhes-resumo').innerHTML = html;
+    document.getElementById('form-compra').style.display = 'none';
+    document.getElementById('resumo-final').style.display = 'block';
+  });
+
+  // Enviar resumo para WhatsApp
+  document.getElementById('confirmar-btn').addEventListener('click', () => {
+    const qtd = parseInt(document.getElementById('quantidade').value);
+    let msg = 'Nova compra de ingressos:%0A';
+    for (let i = 1; i <= qtd; i++) {
+      const nome = document.getElementById(`nome_${i}`).value.trim();
+      const cpf = document.getElementById(`cpf_${i}`).value.trim();
+      const nasc = document.getElementById(`dtnasc_${i}`).value;
+      const tipoText = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
+      msg += `%0AIngresso ${i} - ${tipoText}%0ANome: ${nome}%0ACPF: ${cpf}%0ANasc: ${nasc}%0A`;
+    }
+    window.open(`https://wa.me/5514988348453?text=${msg}`, '_blank');
+  });
+
+  // Função para adicionar ao Google Calendar (formato direto por link)
+  document.getElementById("google-calendar-link").addEventListener("click", function (e) {
+    e.preventDefault();
+
+    const titulo = encodeURIComponent("Churrasco Eng em Formação");
+    const descricao = encodeURIComponent("🔥🥩 Churrasco da Engenharia em Formação!\nLocal: R. Emílio Roli, 200 – Ourinhos – SP");
+    const local = encodeURIComponent("Rua Emílio Roli, 200, Ourinhos, SP");
+    const start = "20250823T103000"; // AAAAMMDDTHHMMSS
+    const end = "20250823T153000";
+
+    const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${titulo}&dates=${start}/${end}&details=${descricao}&location=${local}&sf=true&output=xml`;
+
+    window.open(url, '_blank');
+  });
+  document.getElementById('voltar-btn').addEventListener('click', () => {
+  document.getElementById('form-compra').style.display = 'none';
+  document.getElementById('inicio').style.display = 'block';
+});
+
+</script>
+</body>
+</html>
