@@ -375,25 +375,12 @@
     window.open(`https://wa.me/5514988348453?text=${msg}`, '_blank');
   });
 
-  // Função para adicionar ao Google Calendar (formato direto por link)
+  // Função para identificar o dispositivo e adicionar ao calendário
+  document.getElementById("google-calendar-link").textContent = "Adicionar ao calendário";
   document.getElementById("google-calendar-link").addEventListener("click", function (e) {
     e.preventDefault();
 
-    const titulo = encodeURIComponent("Churrasco Eng em Formação");
-    const descricao = encodeURIComponent("🔥🥩 Churrasco da Engenharia em Formação!\nLocal: R. Emílio Roli, 200 – Ourinhos – SP");
-    const local = encodeURIComponent("Rua Emílio Roli, 200, Ourinhos, SP");
-    const start = "20250823T103000"; // AAAAMMDDTHHMMSS
-    const end = "20250823T153000";
-
-    const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${titulo}&dates=${start}/${end}&details=${descricao}&location=${local}&sf=true&output=xml`;
-
-    window.open(url, '_blank');
-  });
-  // Função para gerar e baixar arquivo .ics
-  document.getElementById("google-calendar-link").insertAdjacentHTML("afterend", `<a href="#" class="add-calendar" id="iphone-calendar-link">Adicionar ao calendário do iPhone</a>`);
-
-  document.getElementById("iphone-calendar-link").addEventListener("click", function (e) {
-    e.preventDefault();
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
     const titulo = "Churrasco Eng em Formação";
     const descricao = "🔥🥩 Churrasco da Engenharia em Formação!\nLocal: R. Emílio Roli, 200 – Ourinhos – SP";
@@ -401,17 +388,24 @@
     const start = "20250823T103000"; // AAAAMMDDTHHMMSS
     const end = "20250823T153000";
 
-    const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${titulo}\nDESCRIPTION:${descricao}\nLOCATION:${local}\nDTSTART:${start}\nDTEND:${end}\nEND:VEVENT\nEND:VCALENDAR`;
+    if (isIOS) {
+      // Gerar arquivo .ics para iPhone
+      const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${titulo}\nDESCRIPTION:${descricao}\nLOCATION:${local}\nDTSTART:${start}\nDTEND:${end}\nEND:VEVENT\nEND:VCALENDAR`;
 
-    const blob = new Blob([icsContent], { type: "text/calendar" });
-    const url = URL.createObjectURL(blob);
+      const blob = new Blob([icsContent], { type: "text/calendar" });
+      const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "evento.ics";
-    a.click();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "evento.ics";
+      a.click();
 
-    URL.revokeObjectURL(url);
+      URL.revokeObjectURL(url);
+    } else {
+      // Redirecionar para Google Calendar
+      const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titulo)}&dates=${start}/${end}&details=${encodeURIComponent(descricao)}&location=${encodeURIComponent(local)}&sf=true&output=xml`;
+      window.open(url, '_blank');
+    }
   });
   document.getElementById('voltar-btn').addEventListener('click', () => {
   document.getElementById('form-compra').style.display = 'none';
