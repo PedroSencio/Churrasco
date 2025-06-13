@@ -389,6 +389,30 @@
 
     window.open(url, '_blank');
   });
+  // Função para gerar e baixar arquivo .ics
+  document.getElementById("google-calendar-link").insertAdjacentHTML("afterend", `<a href="#" class="add-calendar" id="iphone-calendar-link">Adicionar ao calendário do iPhone</a>`);
+
+  document.getElementById("iphone-calendar-link").addEventListener("click", function (e) {
+    e.preventDefault();
+
+    const titulo = "Churrasco Eng em Formação";
+    const descricao = "🔥🥩 Churrasco da Engenharia em Formação!\nLocal: R. Emílio Roli, 200 – Ourinhos – SP";
+    const local = "Rua Emílio Roli, 200, Ourinhos, SP";
+    const start = "20250823T103000"; // AAAAMMDDTHHMMSS
+    const end = "20250823T153000";
+
+    const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${titulo}\nDESCRIPTION:${descricao}\nLOCATION:${local}\nDTSTART:${start}\nDTEND:${end}\nEND:VEVENT\nEND:VCALENDAR`;
+
+    const blob = new Blob([icsContent], { type: "text/calendar" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "evento.ics";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  });
   document.getElementById('voltar-btn').addEventListener('click', () => {
   document.getElementById('form-compra').style.display = 'none';
   document.getElementById('inicio').style.display = 'block';
