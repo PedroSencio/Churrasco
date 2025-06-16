@@ -1,15 +1,18 @@
 const express = require('express');
-const cors = require('cors');
 const { google } = require('googleapis');
 const stream = require('stream');
 
 const app = express();
 
-// Middleware JSON + CORS para liberar acesso ao Netlify
-app.use(express.json({ limit: '10mb' }));
-app.use(cors({
-  origin: 'https://formaturachurrasco.netlify.app',
-}));
+// Middleware JSON para liberar acesso ao Netlify
+app.use(express.json({ limit: '20mb' }));
+
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://formaturachurrasco.netlify.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
 // Google Auth
 const auth = new google.auth.GoogleAuth({
