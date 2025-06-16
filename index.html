@@ -307,6 +307,8 @@
   </div>
 
   <script>
+    let linkComprovante = '';
+
     // Mostrar formulário
     document.getElementById('btn-comprar').addEventListener('click', () => {
       document.getElementById('inicio').style.display = 'none';
@@ -422,7 +424,7 @@
       preview.innerHTML = `<img src="${e.target.result}" alt="Prévia comprovante" style="max-width: 100%; max-height: 300px; border: 1px solid #555; border-radius: 6px;" />`;
 
       // Enviar o arquivo para o backend
-      fetch('/upload', {
+      fetch('https://churrasco-uawh.onrender.com/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
