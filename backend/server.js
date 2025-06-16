@@ -31,6 +31,7 @@ app.post('/atualizar-sheets', async (req, res) => {
       cpf,
       nascimento,
       tipo,
+      comprovante || 'Sem comprovante',
     ]);
 
     // Atualizar a planilha com os dados do arquivo
@@ -90,7 +91,7 @@ app.post('/upload', async (req, res) => {
       range: 'Sheet1!E1',
       valueInputOption: 'RAW',
       requestBody: {
-        values: [[fileName, fileLink]],
+        values: [[fileLink]],
       },
     });
 
