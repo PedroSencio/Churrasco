@@ -87,7 +87,7 @@ app.post('/upload', async (req, res) => {
     // Atualizar a planilha com o link da imagem
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Sheet1!A1',
+      range: 'Sheet1!E1',
       valueInputOption: 'RAW',
       requestBody: {
         values: [[fileName, fileLink]],
