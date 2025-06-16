@@ -3,30 +3,35 @@ const cors = require('cors');
 const { google } = require('googleapis');
 const stream = require('stream');
 
-
 const app = express();
 
-app.use(express.json({ limit: '10mb' })); // ou até '20mb' se necessário
+// Middleware JSON + CORS para liberar acesso ao Netlify
+app.use(express.json({ limit: '10mb' }));
 app.use(cors({
-  origin: 'https://formaturachurrasco.netlify.app' // OU use '*', se quiser liberar tudo (somente para testes!)
+  origin: 'https://formaturachurrasco.netlify.app',
 }));
 
-// Configuração da API do Google Sheets
+// Google Auth
 const auth = new google.auth.GoogleAuth({
   credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  scopes: [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive',
+  ],
 });
 
-const sheets = google.sheets({ version: 'v4', auth });
 const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
 
 app.post('/atualizar-sheets', async (req, res) => {
   try {
-    console.log('▶️ Recebido POST /atualizar-sheets');
+    console.log('▶️ POST /atualizar-sheets');
+
     if (!Array.isArray(req.body) || req.body.length === 0) {
-      console.error('❌ Dados inválidos ou vazios:', req.body);
-      return res.status(400).send('Dados inválidos.');
+      return res.status(400).send('❌ Dados inválidos.');
     }
+
+    const client = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: client });
 
     const values = req.body.map(({ nome, cpf, nascimento, tipo, comprovante }) => [
       nome,
@@ -36,34 +41,38 @@ app.post('/atualizar-sheets', async (req, res) => {
       comprovante || 'Sem comprovante',
     ]);
 
-    // Atualizar a planilha com os dados do arquivo
-    const response = await sheets.spreadsheets.values.append({
+    await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: 'Página1!A1',
       valueInputOption: 'RAW',
-      requestBody: {
-        values,
-      },
+      requestBody: { values },
     });
 
-    console.log('✅ Dados adicionados:', values);
-    res.status(200).send('Dados enviados para o Google Sheets com sucesso!');
+    console.log('✅ Dados salvos na planilha:', values);
+    res.status(200).send('Dados enviados com sucesso!');
   } catch (err) {
-    console.error('❌ Erro ao enviar para o Google Sheets:', err);
+    console.error('❌ Erro ao atualizar planilha:', err);
     res.status(500).send('Erro ao atualizar a planilha.');
   }
 });
 
 app.post('/upload', async (req, res) => {
   try {
+    console.log('📦 POST /upload');
+
     const { fileName, fileData } = req.body;
 
-    // Salvar a imagem no Google Drive
-    const drive = google.drive({ version: 'v3', auth });
+    if (!fileName || !fileData) {
+      return res.status(400).json({ message: 'Arquivo inválido.' });
+    }
+
+    const client = await auth.getClient();
+    const drive = google.drive({ version: 'v3', auth: client });
+
     const bufferStream = new stream.PassThrough();
     bufferStream.end(Buffer.from(fileData.split(',')[1], 'base64'));
 
-    const driveResponse = await drive.files.create({
+    const upload = await drive.files.create({
       requestBody: {
         name: fileName,
         mimeType: 'image/jpeg',
@@ -74,9 +83,8 @@ app.post('/upload', async (req, res) => {
       },
     });
 
-    const fileId = driveResponse.data.id;
+    const fileId = upload.data.id;
 
-    // Tornar o arquivo público
     await drive.permissions.create({
       fileId,
       requestBody: {
@@ -87,25 +95,16 @@ app.post('/upload', async (req, res) => {
 
     const fileLink = `https://drive.google.com/uc?id=${fileId}`;
 
-    // Atualizar a planilha com o link da imagem
-    const response = await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: 'Sheet1!E1',
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: [[fileLink]],
-      },
-    });
+    console.log('✅ Comprovante salvo:', fileLink);
 
-    res.status(200).json({ message: 'Imagem enviada e planilha atualizada com sucesso!', response });
-  } catch (error) {
-    console.error('Erro ao enviar a imagem:', error);
-    res.status(500).json({ message: 'Erro ao enviar a imagem.', error });
+    res.status(200).json({ fileLink }); // <-- resposta essencial pro front
+  } catch (err) {
+    console.error('❌ Erro no upload:', err);
+    res.status(500).json({ message: 'Erro ao enviar a imagem.', error: err });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
