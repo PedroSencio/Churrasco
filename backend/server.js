@@ -2,8 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { google } = require('googleapis');
-const QRCode = require('qrcode');
-const Pix = require('pix');
+
 
 const app = express();
 
@@ -51,26 +50,6 @@ app.post('/atualizar-sheets', async (req, res) => {
   } catch (err) {
     console.error('❌ Erro ao enviar para o Google Sheets:', err);
     res.status(500).send('Erro ao atualizar a planilha.');
-  }
-});
-
-app.post('/gerar-pix', async (req, res) => {
-  const { nome, cidade, chave, valor, mensagem } = req.body;
-
-  const payload = Pix({
-    version: '01',
-    key: chave,
-    name: nome,
-    city: cidade,
-    value: valor,
-    message: mensagem,
-  });
-
-  try {
-    const qrCode = await QRCode.toDataURL(payload);
-    res.json({ pix: payload, qrCode });
-  } catch (err) {
-    res.status(500).json({ erro: 'Erro ao gerar QR Code', detalhe: err.message });
   }
 });
 

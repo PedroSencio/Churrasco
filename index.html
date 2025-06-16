@@ -292,11 +292,10 @@
       <h1 class="title">Fechamento de Carrinho</h1>
       <div class="resumo-box" id="detalhes-resumo"></div>
       <div class="pix-box">
-  <p><strong>Pagamento via Pix</strong></p>
-  <img id="qr-pix" src="" alt="QR Code Pix" style="width: 100%; max-width: 280px; margin: 12px auto; display: block;" />
-  <p>Chave Pix: 36384701804</p>
-  <p>Nome do recebedor: Anna Beatriz Botin da Silva</p>
-</div>
+        <p><strong>Pagamento via Pix</strong></p>
+        <p>Chave Pix: 36384701804</p>
+        <p>Nome do recebedor: Anna Beatriz Botin da Silva</p>
+      </div>
       <button class="buy-btn" id="confirmar-btn">Confirmar Compra</button>
       <button type="button" class="voltar-btn" id="voltar-btn">← Voltar</button>
     </div>
@@ -343,62 +342,25 @@
 
     // Finalizar compra e exibir resumo
     document.getElementById('formulario').addEventListener('submit', function (e) {
-  e.preventDefault();
-  const qtd = parseInt(document.getElementById('quantidade').value);
-  let total = 0;
-  let html = '';
-  const dados = [];
-
-  for (let i = 1; i <= qtd; i++) {
-    const nome = document.getElementById(`nome_${i}`).value.trim();
-    const cpf = document.getElementById(`cpf_${i}`).value.trim();
-    const nasc = document.getElementById(`dtnasc_${i}`).value;
-    const tipoVal = document.getElementById(`tipo_${i}`).value;
-    const tipoText = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
-    const valor = tipoVal === "1" ? 90 : tipoVal === "2" ? 70 : 60;
-    total += valor;
-
-    html += `<p><strong>Ingresso ${i}:</strong> ${tipoText}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
-    dados.push({ nome, cpf, nascimento: nasc, tipo: tipoText });
-  }
-
-  html += `<p><strong>Total: R$${total}</strong></p>`;
-  document.getElementById('detalhes-resumo').innerHTML = html;
-  document.getElementById('form-compra').style.display = 'none';
-  document.getElementById('resumo-final').style.display = 'block';
-
-  // Envia para Google Sheets
-  fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dados),
-  }).then(res => {
-    if (!res.ok) alert('Erro ao enviar dados para a planilha.');
-  });
-
-  // Gera QR Code Pix com valor total
-  fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      nome: "Anna Beatriz Botin da Silva",
-      cidade: "Ourinhos",
-      chave: "36384701804",
-      valor: total.toFixed(2),
-      mensagem: "Churrasco Eng em Formação",
-    }),
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.qrCode) {
-      document.getElementById('qr-pix').src = data.qrCode;
-    }
-  })
-  .catch(err => {
-    console.error('Erro ao gerar QR Code:', err);
-  });
-});
-
+      e.preventDefault();
+      const qtd = parseInt(document.getElementById('quantidade').value);
+      let total = 0;
+      let html = '';
+      for (let i = 1; i <= qtd; i++) {
+        const nome = document.getElementById(`nome_${i}`).value.trim();
+        const cpf = document.getElementById(`cpf_${i}`).value.trim();
+        const nasc = document.getElementById(`dtnasc_${i}`).value;
+        const tipoVal = document.getElementById(`tipo_${i}`).value;
+        const tipoText = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
+        const valor = tipoVal === "1" ? 90 : tipoVal === "2" ? 70 : 60;
+        total += valor;
+        html += `<p><strong>Ingresso ${i}:</strong> ${tipoText}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
+      }
+      html += `<p><strong>Total: R$${total}</strong></p>`;
+      document.getElementById('detalhes-resumo').innerHTML = html;
+      document.getElementById('form-compra').style.display = 'none';
+      document.getElementById('resumo-final').style.display = 'block';
+    });
 
     // Enviar para planilha e WhatsApp
     document.getElementById('confirmar-btn').addEventListener('click', () => {
