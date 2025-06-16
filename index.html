@@ -296,6 +296,10 @@
         <p>Chave Pix: 36384701804</p>
         <p>Nome do recebedor: Anna Beatriz Botin da Silva</p>
       </div>
+      <label for="comprovante-pix">Anexar comprovante do Pix:</label>
+        <input type="file" id="comprovante-pix" accept=".jpg,.jpeg,.png,.pdf" />
+        <small id="file-info" style="display:block; margin-top: 8px; color:#aaa;"></small>
+        <div id="preview-comprovante" style="margin-top: 10px;"></div>
       <button class="buy-btn" id="confirmar-btn">Confirmar Compra</button>
       <button type="button" class="voltar-btn" id="voltar-btn">← Voltar</button>
     </div>
@@ -398,6 +402,66 @@
     });
 
     // Adicionar ao calendário (mantido)
+    document.getElementById('comprovante-pix').addEventListener('change', function () {
+  const file = this.files[0];
+  const fileInfo = document.getElementById('file-info');
+  const preview = document.getElementById('preview-comprovante');
+
+  if (!file) {
+    fileInfo.textContent = '';
+    preview.innerHTML = '';
+    return;
+  }
+
+  fileInfo.textContent = `Arquivo selecionado: ${file.name}`;
+
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      preview.innerHTML = `<img src="${e.target.result}" alt="Prévia comprovante" style="max-width: 100%; max-height: 300px; border: 1px solid #555; border-radius: 6px;" />`;
+
+      // Enviar o arquivo para o backend
+      fetch('/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Arquivo enviado com sucesso:', data);
+        })
+        .catch(error => {
+          console.error('Erro ao enviar o arquivo:', error);
+        });
+    };
+    reader.readAsDataURL(file);
+  } else if (file.type === 'application/pdf') {
+    preview.innerHTML = `<p style="color:#ccc;">📄 Comprovante em PDF: ${file.name}</p>`;
+    // Enviar o arquivo para o backend
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      fetch('/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Arquivo enviado com sucesso:', data);
+        })
+        .catch(error => {
+          console.error('Erro ao enviar o arquivo:', error);
+        });
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.innerHTML = `<p style="color:#f88;">❌ Tipo de arquivo não suportado.</p>`;
+  }
+});
   </script>
 </body>
 </html>

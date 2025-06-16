@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { google } = require('googleapis');
 
 
@@ -9,13 +8,13 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Autenticação com conta de serviço
+// Configuração da API do Google Sheets
 const auth = new google.auth.GoogleAuth({
   credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
-
+const sheets = google.sheets({ version: 'v4', auth });
 const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
 
 app.post('/atualizar-sheets', async (req, res) => {
@@ -26,9 +25,6 @@ app.post('/atualizar-sheets', async (req, res) => {
       return res.status(400).send('Dados inválidos.');
     }
 
-    const client = await auth.getClient();
-    const sheets = google.sheets({ version: 'v4', auth: client });
-
     const values = req.body.map(({ nome, cpf, nascimento, tipo }) => [
       nome,
       cpf,
@@ -36,11 +32,12 @@ app.post('/atualizar-sheets', async (req, res) => {
       tipo,
     ]);
 
-    const result = await sheets.spreadsheets.values.append({
+    // Atualizar a planilha com os dados do arquivo
+    const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: 'Página1!A1',
       valueInputOption: 'RAW',
-      resource: {
+      requestBody: {
         values,
       },
     });
