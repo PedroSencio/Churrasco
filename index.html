@@ -377,7 +377,7 @@
         const cpf = document.getElementById(`cpf_${i}`).value.trim();
         const nasc = document.getElementById(`dtnasc_${i}`).value;
         const tipo = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
-        dados.push({ nome, cpf, nascimento: nasc, tipo });
+        dados.push({ nome, cpf, nascimento: nasc, tipo, comprovante: linkComprovante });
         msg += `%0AIngresso ${i} - ${tipo}%0ANome: ${nome}%0ACPF: ${cpf}%0ANasc: ${nasc}%0A`;
       }
 
@@ -406,6 +406,7 @@
   const file = this.files[0];
   const fileInfo = document.getElementById('file-info');
   const preview = document.getElementById('preview-comprovante');
+  let linkComprovante = ''; // Variável para armazenar o link do comprovante
 
   if (!file) {
     fileInfo.textContent = '';
@@ -423,14 +424,13 @@
       // Enviar o arquivo para o backend
       fetch('/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
       })
         .then(response => response.json())
         .then(data => {
           console.log('Arquivo enviado com sucesso:', data);
+          linkComprovante = data.fileLink; // SALVA O LINK DO COMPROVANTE
         })
         .catch(error => {
           console.error('Erro ao enviar o arquivo:', error);
@@ -439,19 +439,17 @@
     reader.readAsDataURL(file);
   } else if (file.type === 'application/pdf') {
     preview.innerHTML = `<p style="color:#ccc;">📄 Comprovante em PDF: ${file.name}</p>`;
-    // Enviar o arquivo para o backend
     const reader = new FileReader();
     reader.onload = function (e) {
       fetch('/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
       })
         .then(response => response.json())
         .then(data => {
           console.log('Arquivo enviado com sucesso:', data);
+          linkComprovante = data.fileLink; // SALVA O LINK DO COMPROVANTE
         })
         .catch(error => {
           console.error('Erro ao enviar o arquivo:', error);
