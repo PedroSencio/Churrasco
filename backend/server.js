@@ -6,8 +6,10 @@ const stream = require('stream');
 
 const app = express();
 
-app.use(express.json());
-app.use(cors());
+app.use(express.json({ limit: '10mb' })); // ou até '20mb' se necessário
+app.use(cors({
+  origin: 'https://formaturachurrasco.netlify.app' // OU use '*', se quiser liberar tudo (somente para testes!)
+}));
 
 // Configuração da API do Google Sheets
 const auth = new google.auth.GoogleAuth({
