@@ -26,7 +26,7 @@ app.post('/atualizar-sheets', async (req, res) => {
       return res.status(400).send('Dados inválidos.');
     }
 
-    const values = req.body.map(({ nome, cpf, nascimento, tipo }) => [
+    const values = req.body.map(({ nome, cpf, nascimento, tipo, comprovante }) => [
       nome,
       cpf,
       nascimento,
