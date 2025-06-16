@@ -307,7 +307,7 @@
   </div>
 
   <script>
-    let linkComprovante = '';
+  linkComprovante = '';
 
     // Mostrar formulário
     document.getElementById('btn-comprar').addEventListener('click', () => {
@@ -414,7 +414,6 @@
   const file = this.files[0];
   const fileInfo = document.getElementById('file-info');
   const preview = document.getElementById('preview-comprovante');
-  let linkComprovante = ''; // Variável para armazenar o link do comprovante
 
   if (!file) {
     fileInfo.textContent = '';
@@ -431,21 +430,18 @@
 
       // Enviar o arquivo para o backend
       fetch('https://churrasco-uawh.onrender.com/upload', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
-})
-.then(response => response.json())
-.then(data => {
-  linkComprovante = data.fileLink;
-  console.log('✅ Comprovante salvo:', linkComprovante);
-})
-.catch(error => {
-  console.error('Erro ao enviar o comprovante:', error);
-});
-
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Arquivo enviado com sucesso:', data);
+          linkComprovante = data.fileLink; // Usa a variável global
+        })
+        .catch(error => {
+          console.error('Erro ao enviar o arquivo:', error);
+        });
     };
     reader.readAsDataURL(file);
   } else if (file.type === 'application/pdf') {
@@ -460,7 +456,7 @@
         .then(response => response.json())
         .then(data => {
           console.log('Arquivo enviado com sucesso:', data);
-          linkComprovante = data.fileLink; // SALVA O LINK DO COMPROVANTE
+          linkComprovante = data.fileLink; // Usa a variável global
         })
         .catch(error => {
           console.error('Erro ao enviar o arquivo:', error);
