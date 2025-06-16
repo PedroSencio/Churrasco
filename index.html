@@ -307,69 +307,69 @@
   </div>
 
   <script>
-  let linkComprovante = '';
+let linkComprovante = ''; // ✅ variável global correta
 
-    // Mostrar formulário
-    document.getElementById('btn-comprar').addEventListener('click', () => {
-      document.getElementById('inicio').style.display = 'none';
-      document.getElementById('form-compra').style.display = 'block';
-    });
+// Mostrar formulário
+document.getElementById('btn-comprar').addEventListener('click', () => {
+  document.getElementById('inicio').style.display = 'none';
+  document.getElementById('form-compra').style.display = 'block';
+});
 
-    // Gerar campos
-    document.getElementById('continue-btn').addEventListener('click', () => {
-      const qtd = parseInt(document.getElementById('quantidade').value);
-      if (!qtd || qtd < 1 || qtd > 10) {
-        alert('Informe uma quantidade válida entre 1 e 10.');
-        return;
-      }
-      const container = document.getElementById('ingressos');
-      container.innerHTML = '';
-      for (let i = 1; i <= qtd; i++) {
-        container.innerHTML += `
-          <div class="ingresso-box">
-            <h3>Ingresso ${i}</h3>
-            <label>Nome completo:</label>
-            <input type="text" id="nome_${i}" required />
-            <label>CPF:</label>
-            <input type="text" id="cpf_${i}" required />
-            <label>Data de nascimento:</label>
-            <input type="date" id="dtnasc_${i}" required />
-            <label>Tipo de ingresso:</label>
-            <select id="tipo_${i}" required>
-              <option value="">Selecione</option>
-              <option value="1">Adulto (com bebida) - R$90</option>
-              <option value="2">Adulto (sem bebida) - R$70</option>
-              <option value="3">Criança - R$60</option>
-            </select>
-          </div>`;
-      }
-      document.getElementById('formulario').style.display = 'block';
-    });
+// Gerar campos do formulário
+document.getElementById('continue-btn').addEventListener('click', () => {
+  const qtd = parseInt(document.getElementById('quantidade').value);
+  if (!qtd || qtd < 1 || qtd > 10) {
+    alert('Informe uma quantidade válida entre 1 e 10.');
+    return;
+  }
+  const container = document.getElementById('ingressos');
+  container.innerHTML = '';
+  for (let i = 1; i <= qtd; i++) {
+    container.innerHTML += `
+      <div class="ingresso-box">
+        <h3>Ingresso ${i}</h3>
+        <label>Nome completo:</label>
+        <input type="text" id="nome_${i}" required />
+        <label>CPF:</label>
+        <input type="text" id="cpf_${i}" required />
+        <label>Data de nascimento:</label>
+        <input type="date" id="dtnasc_${i}" required />
+        <label>Tipo de ingresso:</label>
+        <select id="tipo_${i}" required>
+          <option value="">Selecione</option>
+          <option value="1">Adulto (com bebida) - R$90</option>
+          <option value="2">Adulto (sem bebida) - R$70</option>
+          <option value="3">Criança - R$60</option>
+        </select>
+      </div>`;
+  }
+  document.getElementById('formulario').style.display = 'block';
+});
 
-    // Finalizar compra e exibir resumo
-    document.getElementById('formulario').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const qtd = parseInt(document.getElementById('quantidade').value);
-      let total = 0;
-      let html = '';
-      for (let i = 1; i <= qtd; i++) {
-        const nome = document.getElementById(`nome_${i}`).value.trim();
-        const cpf = document.getElementById(`cpf_${i}`).value.trim();
-        const nasc = document.getElementById(`dtnasc_${i}`).value;
-        const tipoVal = document.getElementById(`tipo_${i}`).value;
-        const tipoText = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
-        const valor = tipoVal === "1" ? 90 : tipoVal === "2" ? 70 : 60;
-        total += valor;
-        html += `<p><strong>Ingresso ${i}:</strong> ${tipoText}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
-      }
-      html += `<p><strong>Total: R$${total}</strong></p>`;
-      document.getElementById('detalhes-resumo').innerHTML = html;
-      document.getElementById('form-compra').style.display = 'none';
-      document.getElementById('resumo-final').style.display = 'block';
-    });
+// Finalizar compra
+document.getElementById('formulario').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const qtd = parseInt(document.getElementById('quantidade').value);
+  let total = 0;
+  let html = '';
+  for (let i = 1; i <= qtd; i++) {
+    const nome = document.getElementById(`nome_${i}`).value.trim();
+    const cpf = document.getElementById(`cpf_${i}`).value.trim();
+    const nasc = document.getElementById(`dtnasc_${i}`).value;
+    const tipoVal = document.getElementById(`tipo_${i}`).value;
+    const tipoText = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
+    const valor = tipoVal === "1" ? 90 : tipoVal === "2" ? 70 : 60;
+    total += valor;
+    html += `<p><strong>Ingresso ${i}:</strong> ${tipoText}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
+  }
+  html += `<p><strong>Total: R$${total}</strong></p>`;
+  document.getElementById('detalhes-resumo').innerHTML = html;
+  document.getElementById('form-compra').style.display = 'none';
+  document.getElementById('resumo-final').style.display = 'block';
+});
 
-    // Enviar para planilha e WhatsApp
-    document.getElementById('confirmar-btn').addEventListener('click', async () => {
+// Confirmar compra (comprovante obrigatório)
+document.getElementById('confirmar-btn').addEventListener('click', () => {
   if (!linkComprovante) {
     alert('Aguarde o envio do comprovante antes de confirmar.');
     return;
@@ -388,7 +388,6 @@
     msg += `%0AIngresso ${i} - ${tipo}%0ANome: ${nome}%0ACPF: ${cpf}%0ANasc: ${nasc}%0A`;
   }
 
-  // Enviar tudo junto (dados + comprovante)
   fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -397,20 +396,13 @@
     if (!res.ok) {
       res.text().then(t => alert('Erro ao enviar dados para a planilha:\n' + t));
     } else {
-      // Abrir WhatsApp
       window.open(`https://wa.me/5514988348453?text=${msg}`, '_blank');
     }
   });
 });
 
-    // Botão voltar
-    document.getElementById('voltar-btn').addEventListener('click', () => {
-      document.getElementById('resumo-final').style.display = 'none';
-      document.getElementById('inicio').style.display = 'block';
-    });
-
-    // Adicionar ao calendário (mantido)
-    document.getElementById('comprovante-pix').addEventListener('change', function () {
+// Upload do comprovante (imagem ou PDF)
+document.getElementById('comprovante-pix').addEventListener('change', function () {
   const file = this.files[0];
   const fileInfo = document.getElementById('file-info');
   const preview = document.getElementById('preview-comprovante');
@@ -423,50 +415,39 @@
 
   fileInfo.textContent = `Arquivo selecionado: ${file.name}`;
 
-  if (file.type.startsWith('image/')) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    if (file.type.startsWith('image/')) {
       preview.innerHTML = `<img src="${e.target.result}" alt="Prévia comprovante" style="max-width: 100%; max-height: 300px; border: 1px solid #555; border-radius: 6px;" />`;
+    } else {
+      preview.innerHTML = `<p style="color:#ccc;">📄 Comprovante em PDF: ${file.name}</p>`;
+    }
 
-      // Enviar o arquivo para o backend
-      fetch('https://churrasco-uawh.onrender.com/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
+    fetch('https://churrasco-uawh.onrender.com/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        linkComprovante = data.fileLink;
+        console.log('✅ Comprovante enviado:', linkComprovante);
       })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Arquivo enviado com sucesso:', data);
-          linkComprovante = data.fileLink; // Usa a variável global
-        })
-        .catch(error => {
-          console.error('Erro ao enviar o arquivo:', error);
-        });
-    };
-    reader.readAsDataURL(file);
-  } else if (file.type === 'application/pdf') {
-    preview.innerHTML = `<p style="color:#ccc;">📄 Comprovante em PDF: ${file.name}</p>`;
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      fetch('/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Arquivo enviado com sucesso:', data);
-          linkComprovante = data.fileLink; // Usa a variável global
-        })
-        .catch(error => {
-          console.error('Erro ao enviar o arquivo:', error);
-        });
-    };
-    reader.readAsDataURL(file);
-  } else {
-    preview.innerHTML = `<p style="color:#f88;">❌ Tipo de arquivo não suportado.</p>`;
-  }
+      .catch(error => {
+        console.error('Erro ao enviar o arquivo:', error);
+        alert('Erro ao enviar o comprovante.');
+      });
+  };
+
+  reader.readAsDataURL(file);
 });
-  </script>
+
+// Voltar para início
+document.getElementById('voltar-btn').addEventListener('click', () => {
+  document.getElementById('resumo-final').style.display = 'none';
+  document.getElementById('inicio').style.display = 'block';
+});
+</script>
+
 </body>
 </html>
