@@ -369,33 +369,39 @@
     });
 
     // Enviar para planilha e WhatsApp
-    document.getElementById('confirmar-btn').addEventListener('click', () => {
-      const qtd = parseInt(document.getElementById('quantidade').value);
-      const dados = [];
-      let msg = 'Nova compra de ingressos:%0A';
+    document.getElementById('confirmar-btn').addEventListener('click', async () => {
+  if (!linkComprovante) {
+    alert('Aguarde o envio do comprovante antes de confirmar.');
+    return;
+  }
 
-      for (let i = 1; i <= qtd; i++) {
-        const nome = document.getElementById(`nome_${i}`).value.trim();
-        const cpf = document.getElementById(`cpf_${i}`).value.trim();
-        const nasc = document.getElementById(`dtnasc_${i}`).value;
-        const tipo = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
-        dados.push({ nome, cpf, nascimento: nasc, tipo, comprovante: linkComprovante });
-        msg += `%0AIngresso ${i} - ${tipo}%0ANome: ${nome}%0ACPF: ${cpf}%0ANasc: ${nasc}%0A`;
-      }
+  const qtd = parseInt(document.getElementById('quantidade').value);
+  const dados = [];
+  let msg = 'Nova compra de ingressos:%0A';
 
-      // Envia para backend (Google Sheets)
-      fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
+  for (let i = 1; i <= qtd; i++) {
+    const nome = document.getElementById(`nome_${i}`).value.trim();
+    const cpf = document.getElementById(`cpf_${i}`).value.trim();
+    const nasc = document.getElementById(`dtnasc_${i}`).value;
+    const tipo = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
+    dados.push({ nome, cpf, nascimento: nasc, tipo, comprovante: linkComprovante });
+    msg += `%0AIngresso ${i} - ${tipo}%0ANome: ${nome}%0ACPF: ${cpf}%0ANasc: ${nasc}%0A`;
+  }
 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dados),
-      }).then(res => {
-        if (!res.ok) alert('Erro ao enviar dados para a planilha.');
-      });
-
-      // Abre WhatsApp
+  // Enviar tudo junto (dados + comprovante)
+  fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados),
+  }).then(res => {
+    if (!res.ok) {
+      res.text().then(t => alert('Erro ao enviar dados para a planilha:\n' + t));
+    } else {
+      // Abrir WhatsApp
       window.open(`https://wa.me/5514988348453?text=${msg}`, '_blank');
-    });
+    }
+  });
+});
 
     // Botão voltar
     document.getElementById('voltar-btn').addEventListener('click', () => {
@@ -425,18 +431,21 @@
 
       // Enviar o arquivo para o backend
       fetch('https://churrasco-uawh.onrender.com/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Arquivo enviado com sucesso:', data);
-          linkComprovante = data.fileLink; // SALVA O LINK DO COMPROVANTE
-        })
-        .catch(error => {
-          console.error('Erro ao enviar o arquivo:', error);
-        });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ fileName: file.name, fileData: e.target.result }),
+})
+.then(response => response.json())
+.then(data => {
+  linkComprovante = data.fileLink;
+  console.log('✅ Comprovante salvo:', linkComprovante);
+})
+.catch(error => {
+  console.error('Erro ao enviar o comprovante:', error);
+});
+
     };
     reader.readAsDataURL(file);
   } else if (file.type === 'application/pdf') {
