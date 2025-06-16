@@ -63,7 +63,7 @@ app.post('/upload', async (req, res) => {
   try {
     console.log('📦 POST /upload');
 
-    const { fileName, fileData } = req.body;
+    const { fileName, fileData, fileType } = req.body;
 
     if (!fileName || !fileData) {
       return res.status(400).json({ message: 'Arquivo inválido.' });
@@ -75,18 +75,18 @@ app.post('/upload', async (req, res) => {
     const bufferStream = new stream.PassThrough();
     bufferStream.end(Buffer.from(fileData.split(',')[1], 'base64'));
 
-    const upload = await drive.files.create({
+    const driveResponse = await drive.files.create({
       requestBody: {
         name: fileName,
-        mimeType: 'image/jpeg',
+        mimeType: fileType, // Corrigido para usar o tipo dinâmico do arquivo
       },
       media: {
-        mimeType: 'image/jpeg',
+        mimeType: fileType, // Corrigido para usar o tipo dinâmico do arquivo
         body: bufferStream,
       },
     });
 
-    const fileId = upload.data.id;
+    const fileId = driveResponse.data.id;
 
     await drive.permissions.create({
       fileId,
