@@ -187,6 +187,7 @@
 
   .resumo-box p, .pix-box p {
     margin: 6px 0;
+    align-items: center;
   }
 
   hr {
@@ -295,7 +296,7 @@
         <p><strong>Pagamento via Pix</strong></p>
         <p>Chave Pix: 36384701804</p>
         <p>Nome do recebedor: Anna Beatriz Botin da Silva</p>
-        <img src="image/qr.png" alt="Churrasco Eng em Formação Banner" />
+        <img src="./image/qr.png" alt="QR Code para pagamento via Pix" />
 
       </div>
       <button class="buy-btn" id="confirmar-btn">Confirmar Compra</button>
@@ -400,6 +401,30 @@
     });
 
     // Adicionar ao calendário (mantido)
+    document.getElementById('google-calendar-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      const startDate = new Date('2025-08-23T10:30:00');
+      const endDate = new Date('2025-08-23T18:30:00');
+      const title = 'Churrasco Eng em Formação';
+      const location = 'Rua Emílio Roli, 200, Vila Gomes Cardim, Ourinhos – SP';
+      const description = 'Chegou a hora de garantir o seu ingresso pro nosso CHURRASCO ENG EM FORMAÇÃO!';
+
+      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        alert('Seu dispositivo não suporta esta funcionalidade.');
+        return;
+      }
+
+      const calendarEvent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDTSTART:${startDate.toISOString().replace(/-|:|\.\d+/g, '')}\nDTEND:${endDate.toISOString().replace(/-|:|\.\d+/g, '')}\nLOCATION:${location}\nDESCRIPTION:${description}\nEND:VEVENT\nEND:VCALENDAR`;
+
+      const blob = new Blob([calendarEvent], { type: 'text/calendar' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'evento.ics';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   </script>
 </body>
 </html>
