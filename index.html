@@ -400,30 +400,18 @@
       document.getElementById('inicio').style.display = 'block';
     });
 
-    // Adicionar ao calendário (mantido)
+    // Adicionar ao calendário (atualizado para Google Calendar)
     document.getElementById('google-calendar-link').addEventListener('click', (e) => {
       e.preventDefault();
-      const startDate = new Date('2025-08-23T10:30:00');
-      const endDate = new Date('2025-08-23T18:30:00');
-      const title = 'Churrasco Eng em Formação';
-      const location = 'Rua Emílio Roli, 200, Vila Gomes Cardim, Ourinhos – SP';
-      const description = 'Chegou a hora de garantir o seu ingresso pro nosso CHURRASCO ENG EM FORMAÇÃO!';
+      const startDate = '20250823T103000';
+      const endDate = '20250823T183000';
+      const title = encodeURIComponent('Churrasco Eng em Formação');
+      const location = encodeURIComponent('Rua Emílio Roli, 200, Vila Gomes Cardim, Ourinhos – SP');
+      const description = encodeURIComponent('Chegou a hora de garantir o seu ingresso pro nosso CHURRASCO ENG EM FORMAÇÃO!');
 
-      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-        alert('Seu dispositivo não suporta esta funcionalidade.');
-        return;
-      }
+      const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${description}&location=${location}`;
 
-      const calendarEvent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDTSTART:${startDate.toISOString().replace(/-|:|\.\d+/g, '')}\nDTEND:${endDate.toISOString().replace(/-|:|\.\d+/g, '')}\nLOCATION:${location}\nDESCRIPTION:${description}\nEND:VEVENT\nEND:VCALENDAR`;
-
-      const blob = new Blob([calendarEvent], { type: 'text/calendar' });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'evento.ics';
-      a.click();
-      URL.revokeObjectURL(url);
+      window.open(googleCalendarUrl, '_blank');
     });
   </script>
 </body>
