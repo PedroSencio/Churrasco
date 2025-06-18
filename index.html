@@ -369,17 +369,19 @@
     else if (tipo === "3") valorTotal += 60;
   }
 
-  const dados = {
+  const dadosPix = {
     nome,
     cpf,
-    valor: valorTotal
+    valor: valorTotal,
+    id_compra: idCompraGlobal,
+    device_id: window.device_id
   };
 
 
       const resposta = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dados)
+        body: JSON.stringify(dadosPix)
       });
 
       const json = await resposta.json();
