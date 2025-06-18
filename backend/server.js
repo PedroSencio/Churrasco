@@ -19,7 +19,6 @@ const auth = new google.auth.GoogleAuth({
 // Configuração Mercado Pago V1
 mercadopago.configure({
   access_token: process.env.MERCADO_PAGO_TOKEN,
-  integrator_id: process.env.MERCADO_PAGO_INTEGRATOR_ID // Adicionado para rastreamento
 });
 
 const pagamentosPendentes = new Map();
@@ -60,59 +59,62 @@ app.post('/gerar-pix', async (req, res) => {
 
     const { nome, cpf, email, id_compra, device_id } = req.body;
 
-    console.log("Dados recebidos:", req.body);
-
-    if (!req.body.cpf || !/^\d{11}$/.test(req.body.cpf.replace(/\D/g, ''))) {
-      return res.status(400).json({ error: "CPF inválido" });
-    }
-
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: Number(req.body.valor),
-      description: `Ingresso - ${req.body.nome}`,
+      transaction_amount: req.body.valor,
+      description: `Ingresso - ${nome}`,
       payment_method_id: 'pix',
       payer: {
-        email: req.body.email || "comprador@example.com",
-        first_name: req.body.nome,
+        email: email || "comprador@example.com",
+        first_name: nome,
         identification: {
           type: 'CPF',
-          number: req.body.cpf.replace(/\D/g, '').slice(0, 11),
+          number: cpf.replace(/\D/g, '').slice(0, 11),
         },
+      },
+      metadata: {
+        device_id
       },
     });
 
-    res.json({
-      qr_code: pagamento.body.point_of_interaction.transaction_data.qr_code,
-      qr_code_base64: pagamento.body.point_of_interaction.transaction_data.qr_code_base64,
-      payment_id: pagamento.body.id,
-      status: pagamento.body.status
-    });
-  } catch (error) {
-    console.error('Erro detalhado:', {
-      message: error.message,
-      stack: error.stack,
-      response: error.response?.data
+    const paymentId = pagamento.body.id;
+    pagamentosPendentes.set(paymentId, id_compra);
+
+    const dados = pagamento.response.point_of_interaction.transaction_data;
+
+    const client = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: client });
+    const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Página1!A1:G1',
+      valueInputOption: 'RAW',
+      resource: {
+        values: [[
+          nome,
+          cpf,
+          "",        // nascimento (poderia vir do req.body se desejar)
+          "Adulto",  // tipo (ou outro valor se desejar enviar)
+          "Pendente",
+          id_compra,
+          paymentId
+        ]]
+      }
     });
 
-    res.status(500).json({ 
-      error: 'Erro ao gerar Pix',
-      details: error.message,
-      code: error.status || 'MP_ERROR'
+    res.json({
+      qr_code: dados.qr_code,
+      qr_code_base64: dados.qr_code_base64,
+      payment_id: paymentId // Adiciona o payment_id na resposta
     });
+  } catch (error) {
+    console.error('Erro ao gerar Pix:', error);
+    res.status(500).send({ error: 'Erro ao gerar Pix' });
   }
 });
 
 app.post('/webhook', async (req, res) => {
-  const signature = req.headers['x-signature'];
-  if (signature !== process.env.MP_WEBHOOK_SECRET) {
-    return res.status(401).send('Assinatura inválida');
-  }
-
-  console.log('🔔 Webhook recebido:', {
-    headers: req.headers,
-    body: req.body,
-    ip: req.ip
-  });
-
+  console.log('🔥 Webhook recebido!', req.body);
   const paymentId = req.body.data?.id;
 
   try {
@@ -133,17 +135,15 @@ app.post('/webhook', async (req, res) => {
     for (let i = 0; i < linhas.length; i++) {
       const linha = linhas[i];
       if (linha[6] === String(paymentId)) {
-        if (payment.body.status === 'approved') {
-          linha[4] = 'Aprovado'; // Coluna E
-          const linhaRange = `Página1!A${i + 2}:G${i + 2}`; // linha + 2 por conta do cabeçalho
+        linha[4] = 'Aprovado'; // Coluna E
+        const linhaRange = `Página1!A${i + 2}:G${i + 2}`; // linha + 2 por conta do cabeçalho
 
-          await sheets.spreadsheets.values.update({
-            spreadsheetId,
-            range: linhaRange,
-            valueInputOption: 'RAW',
-            requestBody: { values: [linha] }
-          });
-        }
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: linhaRange,
+          valueInputOption: 'RAW',
+          requestBody: { values: [linha] }
+        });
       }
     }
 
