@@ -12,7 +12,7 @@ app.use(cors());
 
 // Google Sheets Auth
 const auth = new google.auth.GoogleAuth({
-  keyFile: process.env.GOOGLE_CREDENTIALS_PATH,
+  credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
