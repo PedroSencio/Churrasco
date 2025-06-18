@@ -311,8 +311,19 @@
     locale: 'pt-BR'
   });
 
-  // Armazena o device_id na janela para reutilização
-  window.device_id = mp.getDeviceId();
+  // Captura automática do device_id via HTML
+  const cardForm = mp.cardForm({
+    amount: "100",
+    autoMount: true,
+    form: {
+      id: 'formulario', // apenas referência; não precisa usar cartão
+    }
+  });
+
+  // Espera até montar e obtém o deviceId
+  cardForm.then(form => {
+    window.device_id = form.getCardFormData().deviceId;
+  });
   </script>
   <script>
     let dados = [];
