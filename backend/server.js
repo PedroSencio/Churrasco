@@ -20,43 +20,40 @@ mercadopago.configure({
   access_token: process.env.MERCADO_PAGO_TOKEN,
 });
 
+const pagamentosPendentes = new Map();
+
 app.post('/atualizar-sheets', async (req, res) => {
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets']
-    });
-
-    const sheets = google.sheets({ version: 'v4', auth });
+    const client = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: client });
     const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
 
-    const dados = req.body; // array de objetos
-    const valores = dados.map(pessoa => [
-      pessoa.nome,
-      pessoa.cpf,
-      pessoa.nascimento,
-      pessoa.tipo,
-      pessoa.status_pagamento
+    const values = req.body.map(({ nome, cpf, nascimento, tipo, status_pagamento, id_compra }) => [
+      nome,
+      cpf,
+      nascimento,
+      tipo,
+      status_pagamento,
+      id_compra,
     ]);
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: 'Página1!A1',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: valores }
+      valueInputOption: 'RAW',
+      resource: { values },
     });
 
-    res.status(200).send('Dados salvos com sucesso');
-  } catch (error) {
-    console.error('Erro ao atualizar planilha:', error);
-    res.status(500).send('Erro ao atualizar planilha');
+    res.status(200).send('Dados enviados com sucesso!');
+  } catch (err) {
+    console.error('Erro ao enviar para o Google Sheets:', err);
+    res.status(500).send('Erro ao atualizar a planilha.');
   }
 });
 
-
 app.post('/gerar-pix', async (req, res) => {
   try {
-    const { nome, valor, cpf, email } = req.body;
+    const { nome, valor, cpf, email, id_compra } = req.body;
 
     const pagamento = await mercadopago.payment.create({
       transaction_amount: parseFloat(valor),
@@ -72,6 +69,9 @@ app.post('/gerar-pix', async (req, res) => {
       },
     });
 
+    const paymentId = pagamento.body.id;
+    pagamentosPendentes.set(paymentId, id_compra);
+
     const dados = pagamento.response.point_of_interaction.transaction_data;
 
     res.json({
@@ -79,8 +79,8 @@ app.post('/gerar-pix', async (req, res) => {
       qr_code_base64: dados.qr_code_base64,
     });
   } catch (error) {
-    console.error('Erro ao gerar Pix:', error.response ? error.response.data : error);
-    res.status(500).send({ error:'Erro ao gerar Pix'});
+    console.error('Erro ao gerar Pix:', error);
+    res.status(500).send({ error: 'Erro ao gerar Pix' });
   }
 });
 
@@ -91,12 +91,14 @@ app.post('/webhook', async (req, res) => {
     const payment = await mercadopago.payment.findById(paymentId);
 
     if (payment.body.status === 'approved') {
-      await fetch('https://churrasco-uawh.onrender.com/confirmar-compra', { 
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id_compra })
-    });
-
+      const id_compra = pagamentosPendentes.get(paymentId);
+      if (id_compra) {
+        await fetch('https://churrasco-uawh.onrender.com/confirmar-compra', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_compra })
+        });
+      }
     }
 
     res.sendStatus(200);
@@ -145,8 +147,6 @@ app.post('/confirmar-compra', async (req, res) => {
     res.status(500).send('Erro ao confirmar compra');
   }
 });
-
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
