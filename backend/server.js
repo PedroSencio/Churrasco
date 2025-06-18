@@ -54,10 +54,10 @@ app.post('/atualizar-sheets', async (req, res) => {
 
 app.post('/gerar-pix', async (req, res) => {
   try {
-    const { nome, valor, cpf, email, id_compra } = req.body;
+    const { nome, cpf, email, id_compra } = req.body;
 
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: parseFloat(valor),
+      transaction_amount: 1, // Alterado para valor fixo de teste
       description: `Ingresso - ${nome}`,
       payment_method_id: 'pix',
       payer: {
@@ -87,35 +87,46 @@ app.post('/gerar-pix', async (req, res) => {
 
 app.post('/webhook', async (req, res) => {
   const paymentId = req.body.data?.id;
-  const signature = req.headers['x-signature'];
 
   try {
-    // Validação da assinatura
-    const expectedSignature = crypto.createHmac('sha256', process.env.MERCADO_PAGO_WEBHOOK_SECRET)
-      .update(JSON.stringify(req.body))
-      .digest('hex');
+    const pagamento = await mercadopago.payment.findById(paymentId);
 
-    if (signature !== expectedSignature) {
-      console.error('Assinatura inválida no webhook');
-      return res.sendStatus(403);
-    }
+    if (pagamento.body.status === 'approved') {
+      // Agora buscar na planilha quem tem esse paymentId
+      const client = await auth.getClient();
+      const sheets = google.sheets({ version: 'v4', auth: client });
+      const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
 
-    const payment = await mercadopago.payment.findById(paymentId);
+      const range = 'Página1!A2:G'; // com paymentId na coluna G (índice 6)
+      const resposta = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range
+      });
 
-    if (payment.body.status === 'approved') {
-      const id_compra = pagamentosPendentes.get(paymentId);
-      if (id_compra) {
-        await fetch('https://churrasco-uawh.onrender.com/confirmar-compra', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_compra })
-        });
+      const linhas = resposta.data.values;
+
+      for (let i = 0; i < linhas.length; i++) {
+        const linha = linhas[i];
+        if (linha[6] === String(paymentId)) {
+          linha[4] = 'Aprovado'; // Situação (coluna E)
+          const rangeUpdate = `Página1!A${i + 2}:G${i + 2}`;
+
+          await sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: rangeUpdate,
+            valueInputOption: 'RAW',
+            requestBody: { values: [linha] }
+          });
+
+          console.log(`✅ Compra confirmada automaticamente para paymentId: ${paymentId}`);
+          break;
+        }
       }
     }
 
     res.sendStatus(200);
-  } catch (error) {
-    console.error('Erro no webhook:', error);
+  } catch (err) {
+    console.error('❌ Erro no webhook:', err);
     res.sendStatus(500);
   }
 });
