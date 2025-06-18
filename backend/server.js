@@ -28,7 +28,7 @@ app.post('/atualizar-sheets', async (req, res) => {
     });
 
     const sheets = google.sheets({ version: 'v4', auth });
-    const spreadsheetId = 'SEU_ID_AQUI';
+    const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
 
     const dados = req.body; // array de objetos
     const valores = dados.map(pessoa => [
