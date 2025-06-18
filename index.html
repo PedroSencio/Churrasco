@@ -448,7 +448,7 @@
         const paymentResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome: dados[0].nome, cpf: dados[0].cpf, valor: total, id_compra: idCompraGlobal }),
+          body: JSON.stringify({ nome: dados[0].nome, cpf: dados[0].cpf, valor: total, id_compra: idCompraGlobal, tipo }),
         });
 
         if (!paymentResponse.ok) {

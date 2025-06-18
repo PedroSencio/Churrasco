@@ -64,7 +64,7 @@ app.post('/gerar-pix', async (req, res) => {
       description: `Ingresso - ${nome}`,
       payment_method_id: 'pix',
       payer: {
-        email: email || "comprador@example.com",
+        email: email,
         first_name: nome,
         identification: {
           type: 'CPF',
@@ -89,9 +89,8 @@ app.post('/gerar-pix', async (req, res) => {
       resource: {
         values: [[
           nome,
-          cpf,
-          "",        // nascimento (poderia vir do req.body se desejar)
-          "Adulto",  // tipo (ou outro valor se desejar enviar)
+          cpf,        // nascimento (poderia vir do req.body se desejar)
+          tipo,  // tipo (ou outro valor se desejar enviar)
           "Pendente",
           id_compra,
           paymentId
