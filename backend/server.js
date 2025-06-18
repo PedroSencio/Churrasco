@@ -74,6 +74,9 @@ app.post('/gerar-pix', async (req, res) => {
       device: {
         device_id: device_id
       },
+      metadata: {
+        device_id
+      },
     });
 
     const paymentId = pagamento.body.id;

@@ -307,9 +307,12 @@
 
   <script src="https://sdk.mercadopago.com/js/v2"></script>
   <script>
-    const mp = new MercadoPago('APP_USR-223fc969-7591-4c3c-882e-3e98cf77439e');
-    const deviceId = mp.device().getId();
-    sessionStorage.setItem("device_id", deviceId);
+  const mp = new MercadoPago('APP_USR-223fc969-7591-4c3c-882e-3e98cf77439e', {
+    locale: 'pt-BR'
+  });
+
+  // Armazena o device_id na janela para reutilização
+  window.device_id = mp.getDeviceId();
   </script>
   <script>
     let dados = [];
@@ -458,7 +461,7 @@
             cpf: dados[0].cpf,
             valor: total,
             id_compra: idCompraGlobal,
-            device_id: sessionStorage.getItem("device_id")
+            device_id: window.device_id
           }),
         });
 
