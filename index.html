@@ -305,29 +305,7 @@
 
   </div>
 
-  <script src="https://sdk.mercadopago.com/js/v2"></script>
   <script>
-  const mp = new MercadoPago('APP_USR-223fc969-7591-4c3c-882e-3e98cf77439e', {
-    locale: 'pt-BR'
-  });
-
-  // Captura automática do device_id via HTML
-  const cardForm = mp.cardForm({
-    amount: "100",
-    autoMount: true,
-    form: {
-      id: 'formulario', // apenas referência; não precisa usar cartão
-    }
-  });
-
-  // Espera até montar e obtém o deviceId
-  cardForm.then(form => {
-    window.device_id = form.getCardFormData().deviceId;
-  });
-  </script>
-  <script>
-    let dados = [];
-
     // Função para validar CPF
     function validarCPF(cpf) {
       cpf = cpf.replace(/[^\d]+/g, '');
@@ -369,29 +347,27 @@
     else if (tipo === "3") valorTotal += 60;
   }
 
-  const dadosPix = {
+  const dados = {
     nome,
     cpf,
-    valor: valorTotal,
-    id_compra: idCompraGlobal,
-    device_id: window.device_id
+    valor: valorTotal
   };
 
 
       const resposta = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dadosPix)
+        body: JSON.stringify(dados)
       });
 
       const json = await resposta.json();
 
-      document.getElementById('resultado').innerHTML = Array.isArray(dados) ? dados.map((d, i) => `
-        <p>Ingresso ${i + 1} - ${d.tipo}<br>
-           Nome: ${d.nome}<br>
-           CPF: ${d.cpf}<br>
-           Nasc: ${d.nascimento}</p><hr>
-      `).join('') : 'Erro ao formatar mensagem';
+      document.getElementById('resultado').innerHTML = `
+        <h3>Use o Pix abaixo:</h3>
+        <img src="data:image/png;base64,${json.qr_code_base64}" width="300"><br><br>
+        <strong>Copia e Cola:</strong><br>
+        <textarea style="width:300px; height:80px">${json.qr_code}</textarea>
+      `;
     });
     // Mostrar formulário
     document.getElementById('btn-comprar').addEventListener('click', () => {
@@ -469,13 +445,7 @@
         const paymentResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nome: dados[0].nome,
-            cpf: dados[0].cpf,
-            valor: total,
-            id_compra: idCompraGlobal,
-            device_id: window.device_id
-          }),
+          body: JSON.stringify({ nome: dados[0].nome, cpf: dados[0].cpf, valor: total, id_compra: idCompraGlobal }),
         });
 
         const data = await paymentResponse.json();
@@ -494,13 +464,6 @@
           <strong>Código Copia e Cola:</strong><br>
           <textarea style="width:300px; height:80px">${data.qr_code}</textarea>
         `;
-
-        // Atualizar Google Sheets
-        await fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dados)
-        });
       } catch (error) {
         console.error('Erro ao obter QR Code Pix:', error);
         const pixBox = document.querySelector('.pix-box');
