@@ -279,7 +279,7 @@
     <div id="form-compra" style="display:none;">
       <h1 class="title">Compra de Ingressos</h1>
       <label for="quantidade">Quantidade de ingressos:</label>
-      <input type="number" id="quantidade" min="1" max="10" required />
+      <input type="number" id="quantidade" min="1" max="10" value="1" required />
       <button id="continue-btn">Continuar</button>
       <form id="formulario" style="display:none;">
         <div id="ingressos"></div>
@@ -296,7 +296,7 @@
         <p><strong>Pagamento via Pix</strong></p>
         <p>Chave Pix: 36384701804</p>
         <p>Nome do recebedor: Anna Beatriz Botin da Silva</p>
-        <img src="./image/qr.png" alt="QR Code para pagamento via Pix" />
+        <div id="resultado"></div>
 
       </div>
       <button class="buy-btn" id="confirmar-btn">Confirmar Compra</button>
@@ -306,6 +306,43 @@
   </div>
 
   <script>
+    document.getElementById('form-compra').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const qtd = parseInt(document.getElementById('quantidade').value);
+  let valorTotal = 0;
+  const nome = document.getElementById('nome_1').value.trim(); // Usa o nome do 1º ingresso
+  const cpf = document.getElementById('cpf_1').value.trim();   // Usa o CPF do 1º ingresso
+
+  for (let i = 1; i <= qtd; i++) {
+    const tipo = document.getElementById(`tipo_${i}`).value;
+    if (tipo === "1") valorTotal += 90;
+    else if (tipo === "2") valorTotal += 70;
+    else if (tipo === "3") valorTotal += 60;
+  }
+
+  const dados = {
+    nome,
+    cpf,
+    valor: valorTotal
+  };
+
+
+      const resposta = await fetch('http://localhost:3000/gerar-pix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados)
+      });
+
+      const json = await resposta.json();
+
+      document.getElementById('resultado').innerHTML = `
+        <h3>Use o Pix abaixo:</h3>
+        <img src="data:image/png;base64,${json.qr_code_base64}" width="300"><br><br>
+        <strong>Copia e Cola:</strong><br>
+        <textarea style="width:300px; height:80px">${json.qr_code}</textarea>
+      `;
+    });
     // Mostrar formulário
     document.getElementById('btn-comprar').addEventListener('click', () => {
       document.getElementById('inicio').style.display = 'none';
