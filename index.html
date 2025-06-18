@@ -392,7 +392,7 @@
         const nasc = document.getElementById(`dtnasc_${i}`).value;
         const tipoVal = document.getElementById(`tipo_${i}`).value;
         const tipoText = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
-        const valor = tipoVal === "1" ? 90 : tipoVal === "2" ? 70 : 60;
+        const valor = tipoVal === "1" ? 1 : tipoVal === "2" ? 70 : 60;
         total += valor;
         html += `<p><strong>Ingresso ${i}:</strong> ${tipoText}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
       }
@@ -449,7 +449,7 @@ try {
         const cpf = document.getElementById(`cpf_${i}`).value.trim();
         const nasc = document.getElementById(`dtnasc_${i}`).value;
         const tipo = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
-        dados.push({ nome, cpf, nascimento: nasc, tipo, status_pagamento: 'Confirmado' });
+        dados.push({ nome, cpf, nascimento: nasc, tipo });
         msg += `%0AIngresso ${i} - ${tipo}%0ANome: ${nome}%0ACPF: ${cpf}%0ANasc: ${nasc}%0AStatus: Confirmado%0A`;
       }
 
