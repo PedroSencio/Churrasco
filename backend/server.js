@@ -64,7 +64,7 @@ app.post('/gerar-pix', async (req, res) => {
       description: `Ingresso - ${nome}`,
       payment_method_id: 'pix',
       payer: {
-        email: email,
+        email: email || 'exemplo@gmail.com',
         first_name: nome,
         identification: {
           type: 'CPF',
