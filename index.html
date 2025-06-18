@@ -299,6 +299,9 @@
         <div id="resultado"></div>
 
       </div>
+      <div>
+        <input type="file" id="comprovante-pix"/>
+      </div>
       <button class="buy-btn" id="confirmar-btn">Confirmar Compra</button>
       <button type="button" class="voltar-btn" id="voltar-btn">← Voltar</button>
     </div>
@@ -342,7 +345,7 @@
 
   for (let i = 1; i <= qtd; i++) {
     const tipo = document.getElementById(`tipo_${i}`).value;
-    if (tipo === "1") valorTotal += 1;
+    if (tipo === "1") valorTotal += 90;
     else if (tipo === "2") valorTotal += 70;
     else if (tipo === "3") valorTotal += 60;
   }
@@ -397,7 +400,7 @@
             <label>Tipo de ingresso:</label>
             <select id="tipo_${i}" required>
               <option value="">Selecione</option>
-              <option value="1">Adulto (com bebida) - R$1</option>
+              <option value="1">Adulto (com bebida) - R$90</option>
               <option value="2">Adulto (sem bebida) - R$70</option>
               <option value="3">Criança - R$60</option>
             </select>
@@ -497,7 +500,14 @@
     });
 
     document.getElementById('confirmar-btn').addEventListener('click', () => {
+
       let msg = `✅ Compra confirmada!\n\n`;
+      cond = document.getElementById('comprovante-pix').files.length > 0;
+
+      if (cond) {
+        msg += 'por favor, anexe o comprovante de pagamento.\n\n';
+      }
+      
       dados.forEach((d, i) => {
         msg += `🎟 Ingresso ${i + 1} - ${d.tipo}\n👤 ${d.nome}\n📆 ${d.nascimento}\n📎 ${d.cpf}\n\n`;
       });

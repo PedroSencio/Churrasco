@@ -57,7 +57,7 @@ app.post('/gerar-pix', async (req, res) => {
   try {
     console.log("📦 Dados recebidos para PIX:", req.body);
 
-    const { nome, cpf, email, id_compra, device_id } = req.body;
+    const { nome, cpf, email, id_compra } = req.body;
 
     const pagamento = await mercadopago.payment.create({
       transaction_amount: req.body.valor,
@@ -70,9 +70,6 @@ app.post('/gerar-pix', async (req, res) => {
           type: 'CPF',
           number: cpf.replace(/\D/g, '').slice(0, 11),
         },
-      },
-      metadata: {
-        device_id
       },
     });
 
