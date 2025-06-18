@@ -466,6 +466,13 @@
           <strong>Código Copia e Cola:</strong><br>
           <textarea style="width:300px; height:80px">${data.qr_code}</textarea>
         `;
+
+        // Atualizar Google Sheets
+        await fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados)
+        });
       } catch (error) {
         console.error('Erro ao obter QR Code Pix:', error);
         const pixBox = document.querySelector('.pix-box');
