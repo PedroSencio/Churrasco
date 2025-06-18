@@ -81,6 +81,27 @@ app.post('/gerar-pix', async (req, res) => {
 
     const dados = pagamento.response.point_of_interaction.transaction_data;
 
+    const client = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: client });
+    const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Página1!A1:G1',
+      valueInputOption: 'RAW',
+      resource: {
+        values: [[
+          nome,
+          cpf,
+          "",        // nascimento (poderia vir do req.body se desejar)
+          "Adulto",  // tipo (ou outro valor se desejar enviar)
+          "Pendente",
+          id_compra,
+          paymentId
+        ]]
+      }
+    });
+
     res.json({
       qr_code: dados.qr_code,
       qr_code_base64: dados.qr_code_base64,
