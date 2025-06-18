@@ -19,6 +19,7 @@ const auth = new google.auth.GoogleAuth({
 // Configuração Mercado Pago V1
 mercadopago.configure({
   access_token: process.env.MERCADO_PAGO_TOKEN,
+  integrator_id: process.env.MERCADO_PAGO_INTEGRATOR_ID // Adicionado para rastreamento
 });
 
 const pagamentosPendentes = new Map();
@@ -65,58 +66,45 @@ app.post('/gerar-pix', async (req, res) => {
       return res.status(400).json({ error: "CPF inválido" });
     }
     
+    if (!req.body.valor || req.body.valor < 5) {
+      return res.status(400).json({ 
+        error: "Valor mínimo para Pix é R$5,00",
+        code: "MIN_VALUE_ERROR"
+      });
+    }
 
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: req.body.valor,
-      description: `Ingresso - ${nome}`,
+      transaction_amount: Number(req.body.valor),
+      description: `Ingresso - ${req.body.nome}`,
       payment_method_id: 'pix',
       payer: {
-        email: email || "comprador@example.com",
-        first_name: nome,
+        email: req.body.email || "comprador@example.com",
+        first_name: req.body.nome,
         identification: {
           type: 'CPF',
-          number: cpf.replace(/\D/g, '').slice(0, 11),
+          number: req.body.cpf.replace(/\D/g, '').slice(0, 11),
         },
       },
-      metadata: {
-        device_id
-      },
-    });
-
-    const paymentId = pagamento.body.id;
-    pagamentosPendentes.set(paymentId, id_compra);
-
-    const dados = pagamento.response.point_of_interaction.transaction_data;
-
-    const client = await auth.getClient();
-    const sheets = google.sheets({ version: 'v4', auth: client });
-    const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
-
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: 'Página1!A1:G1',
-      valueInputOption: 'RAW',
-      resource: {
-        values: [[
-          nome,
-          cpf,
-          "",        // nascimento (poderia vir do req.body se desejar)
-          "Adulto",  // tipo (ou outro valor se desejar enviar)
-          "Pendente",
-          id_compra,
-          paymentId
-        ]]
-      }
     });
 
     res.json({
-      qr_code: dados.qr_code,
-      qr_code_base64: dados.qr_code_base64,
-      payment_id: paymentId // Adiciona o payment_id na resposta
+      qr_code: pagamento.body.point_of_interaction.transaction_data.qr_code,
+      qr_code_base64: pagamento.body.point_of_interaction.transaction_data.qr_code_base64,
+      payment_id: pagamento.body.id,
+      status: pagamento.body.status
     });
   } catch (error) {
-    console.error('Erro ao gerar Pix:', error);
-    res.status(500).send({ error: 'Erro ao gerar Pix' });
+    console.error('Erro detalhado:', {
+      message: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    });
+
+    res.status(500).json({ 
+      error: 'Erro ao gerar Pix',
+      details: error.message,
+      code: error.status || 'MP_ERROR'
+    });
   }
 });
 
