@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const { google } = require('googleapis');
 const mercadopago = require('mercadopago');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -86,8 +87,19 @@ app.post('/gerar-pix', async (req, res) => {
 
 app.post('/webhook', async (req, res) => {
   const paymentId = req.body.data?.id;
+  const signature = req.headers['x-signature'];
 
   try {
+    // Validação da assinatura
+    const expectedSignature = crypto.createHmac('sha256', process.env.MERCADO_PAGO_WEBHOOK_SECRET)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      console.error('Assinatura inválida no webhook');
+      return res.sendStatus(403);
+    }
+
     const payment = await mercadopago.payment.findById(paymentId);
 
     if (payment.body.status === 'approved') {
