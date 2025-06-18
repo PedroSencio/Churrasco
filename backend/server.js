@@ -114,7 +114,17 @@ app.post('/gerar-pix', async (req, res) => {
 });
 
 app.post('/webhook', async (req, res) => {
-  console.log('🔥 Webhook recebido!', req.body);
+  const signature = req.headers['x-signature'];
+  if (signature !== process.env.MP_WEBHOOK_SECRET) {
+    return res.status(401).send('Assinatura inválida');
+  }
+
+  console.log('🔔 Webhook recebido:', {
+    headers: req.headers,
+    body: req.body,
+    ip: req.ip
+  });
+
   const paymentId = req.body.data?.id;
 
   try {
@@ -135,15 +145,17 @@ app.post('/webhook', async (req, res) => {
     for (let i = 0; i < linhas.length; i++) {
       const linha = linhas[i];
       if (linha[6] === String(paymentId)) {
-        linha[4] = 'Aprovado'; // Coluna E
-        const linhaRange = `Página1!A${i + 2}:G${i + 2}`; // linha + 2 por conta do cabeçalho
+        if (payment.body.status === 'approved') {
+          linha[4] = 'Aprovado'; // Coluna E
+          const linhaRange = `Página1!A${i + 2}:G${i + 2}`; // linha + 2 por conta do cabeçalho
 
-        await sheets.spreadsheets.values.update({
-          spreadsheetId,
-          range: linhaRange,
-          valueInputOption: 'RAW',
-          requestBody: { values: [linha] }
-        });
+          await sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: linhaRange,
+            valueInputOption: 'RAW',
+            requestBody: { values: [linha] }
+          });
+        }
       }
     }
 
