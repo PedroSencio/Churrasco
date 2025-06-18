@@ -60,7 +60,7 @@ app.post('/gerar-pix', async (req, res) => {
     const { nome, cpf, email, id_compra } = req.body;
 
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: req.body.valor,
+      transaction_amount: parseFloat(req.body.valor),
       description: `Ingresso - ${nome}`,
       payment_method_id: 'pix',
       payer: {
@@ -72,6 +72,8 @@ app.post('/gerar-pix', async (req, res) => {
         },
       },
     });
+
+    console.log("Tipo de valor recebido:", typeof req.body.valor);
 
     const paymentId = pagamento.body.id;
     pagamentosPendentes.set(paymentId, id_compra);
