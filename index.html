@@ -443,8 +443,9 @@
         const pixBox = document.querySelector('.pix-box');
         pixBox.innerHTML = `
           <p><strong>Pagamento via Pix</strong></p>
-          <img src="${data.qr_code_base64}" alt="QR Code para pagamento via Pix" />
-          <p><strong>Código Copia e Cola:</strong> ${data.qr_code}</p>
+          <img src="data:image/png;base64,${data.qr_code_base64}" alt="QR Code para pagamento via Pix" width="300" /><br><br>
+          <strong>Código Copia e Cola:</strong><br>
+          <textarea style="width:300px; height:80px">${data.qr_code}</textarea>
         `;
       } catch (error) {
         console.error('Erro ao obter QR Code Pix:', error);
