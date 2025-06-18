@@ -306,6 +306,8 @@
   </div>
 
   <script>
+    let dados = [];
+
     // Função para validar CPF
     function validarCPF(cpf) {
       cpf = cpf.replace(/[^\d]+/g, '');
@@ -449,6 +451,10 @@
         });
 
         const data = await paymentResponse.json();
+
+        if (!data.qr_code_base64) {
+          throw new Error("QR Code não gerado. Verifique o CPF ou credenciais.");
+        }
 
         // Adiciona o paymentId à lista de dados
         dados.forEach(d => d.payment_id = data.payment_id);

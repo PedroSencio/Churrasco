@@ -68,7 +68,7 @@ app.post('/gerar-pix', async (req, res) => {
         first_name: nome,
         identification: {
           type: 'CPF',
-          number: cpf || '12345678900',
+          number: cpf.replace(/\D/g, '').slice(0, 11),
         },
       },
     });
