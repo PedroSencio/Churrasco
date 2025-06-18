@@ -448,6 +448,11 @@
           body: JSON.stringify({ nome: dados[0].nome, cpf: dados[0].cpf, valor: total, id_compra: idCompraGlobal }),
         });
 
+        if (!paymentResponse.ok) {
+          const errorText = await paymentResponse.text();
+          throw new Error("Erro ao gerar Pix: " + errorText);
+        }
+
         const data = await paymentResponse.json();
 
         if (!data.qr_code_base64) {

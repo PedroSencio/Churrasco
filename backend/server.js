@@ -71,9 +71,6 @@ app.post('/gerar-pix', async (req, res) => {
           number: cpf.replace(/\D/g, '').slice(0, 11),
         },
       },
-      device: {
-        device_id: device_id
-      },
       metadata: {
         device_id
       },
