@@ -465,17 +465,6 @@
         const pixBox = document.querySelector('.pix-box');
         pixBox.innerHTML = '<p>Erro ao carregar o Pix. Tente novamente mais tarde.</p>';
       }
-
-      // Botão WhatsApp
-      document.getElementById('confirmar-btn').addEventListener('click', () => {
-        let msg = `✅ Compra confirmada!\n\n`;
-        dados.forEach((d, i) => {
-          msg += `🎟 Ingresso ${i + 1} - ${d.tipo}\n👤 ${d.nome}\n📆 ${d.nascimento}\n📎 ${d.cpf}\n\n`;
-        });
-
-        const link = `https://wa.me/5514988348453?text=${encodeURIComponent(msg)}`;
-        window.open(link, '_blank');
-      });
     });
 
     // Botão voltar
@@ -496,6 +485,16 @@
       const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${description}&location=${location}`;
 
       window.open(googleCalendarUrl, '_blank');
+    });
+
+    document.getElementById('confirmar-btn').addEventListener('click', () => {
+      let msg = `✅ Compra confirmada!\n\n`;
+      dados.forEach((d, i) => {
+        msg += `🎟 Ingresso ${i + 1} - ${d.tipo}\n👤 ${d.nome}\n📆 ${d.nascimento}\n📎 ${d.cpf}\n\n`;
+      });
+
+      const link = `https://wa.me/5514988348453?text=${encodeURIComponent(msg)}`;
+      window.open(link, '_blank');
     });
   </script>
 </body>

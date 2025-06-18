@@ -55,6 +55,8 @@ app.post('/atualizar-sheets', async (req, res) => {
 
 app.post('/gerar-pix', async (req, res) => {
   try {
+    console.log("📦 Dados recebidos para PIX:", req.body);
+
     const { nome, cpf, email, id_compra } = req.body;
 
     const pagamento = await mercadopago.payment.create({
@@ -79,6 +81,7 @@ app.post('/gerar-pix', async (req, res) => {
     res.json({
       qr_code: dados.qr_code,
       qr_code_base64: dados.qr_code_base64,
+      payment_id: paymentId // Adiciona o payment_id na resposta
     });
   } catch (error) {
     console.error('Erro ao gerar Pix:', error);
