@@ -20,35 +20,39 @@ mercadopago.configure({
   access_token: process.env.MERCADO_PAGO_TOKEN,
 });
 
-// Google Sheets
-const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
-
 app.post('/atualizar-sheets', async (req, res) => {
   try {
-    const client = await auth.getClient();
-    const sheets = google.sheets({ version: 'v4', auth: client });
+    const auth = new google.auth.GoogleAuth({
+      credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
+      scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    });
 
-    const values = req.body.map(({ nome, cpf, nascimento, tipo, status_pagamento }) => [
-      nome,
-      cpf,
-      nascimento,
-      tipo,
-      status_pagamento,
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = 'SEU_ID_AQUI';
+
+    const dados = req.body; // array de objetos
+    const valores = dados.map(pessoa => [
+      pessoa.nome,
+      pessoa.cpf,
+      pessoa.nascimento,
+      pessoa.tipo,
+      pessoa.status_pagamento
     ]);
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: 'Página1!A1',
-      valueInputOption: 'RAW',
-      resource: { values },
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: valores }
     });
 
-    res.status(200).send('Dados enviados com sucesso!');
-  } catch (err) {
-    console.error('Erro ao enviar para o Google Sheets:', err);
-    res.status(500).send('Erro');
+    res.status(200).send('Dados salvos com sucesso');
+  } catch (error) {
+    console.error('Erro ao atualizar planilha:', error);
+    res.status(500).send('Erro ao atualizar planilha');
   }
 });
+
 
 app.post('/gerar-pix', async (req, res) => {
   try {
@@ -79,6 +83,28 @@ app.post('/gerar-pix', async (req, res) => {
     res.status(500).send({ error:'Erro ao gerar Pix'});
   }
 });
+
+app.post('/webhook', async (req, res) => {
+  const paymentId = req.body.data?.id;
+
+  try {
+    const payment = await mercadopago.payment.findById(paymentId);
+
+    if (payment.body.status === 'approved') {
+      const nome = payment.body.payer.first_name;
+      const cpf = payment.body.payer.identification.number;
+
+      // Atualizar o status na planilha
+      await atualizarStatusPagamento(nome, cpf);
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Erro no webhook:', error);
+    res.sendStatus(500);
+  }
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
