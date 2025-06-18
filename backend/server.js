@@ -59,6 +59,15 @@ app.post('/gerar-pix', async (req, res) => {
 
     const { nome, cpf, email, id_compra, device_id } = req.body;
 
+    console.log("Dados recebidos:", req.body);
+
+    if (!req.body.cpf || !/^\d{11}$/.test(req.body.cpf.replace(/\D/g, ''))) {
+      return res.status(400).json({ error: "CPF inválido" });
+    }
+    if (req.body.valor < 5) {
+      return res.status(400).json({ error: "Valor mínimo: R$5,00" });
+    }
+
     const pagamento = await mercadopago.payment.create({
       transaction_amount: req.body.valor,
       description: `Ingresso - ${nome}`,
