@@ -60,7 +60,7 @@ app.post('/gerar-pix', async (req, res) => {
     const { nome, cpf, email, id_compra, device_id } = req.body;
 
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: 1, // Alterado para valor fixo de teste
+      transaction_amount: req.body.valor,
       description: `Ingresso - ${nome}`,
       payment_method_id: 'pix',
       payer: {

@@ -384,12 +384,12 @@
 
       const json = await resposta.json();
 
-      document.getElementById('resultado').innerHTML = dados.map((d, i) => `
+      document.getElementById('resultado').innerHTML = Array.isArray(dados) ? dados.map((d, i) => `
         <p>Ingresso ${i + 1} - ${d.tipo}<br>
            Nome: ${d.nome}<br>
            CPF: ${d.cpf}<br>
            Nasc: ${d.nascimento}</p><hr>
-      `).join('');
+      `).join('') : 'Erro ao formatar mensagem';
     });
     // Mostrar formulário
     document.getElementById('btn-comprar').addEventListener('click', () => {
