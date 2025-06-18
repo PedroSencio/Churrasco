@@ -383,6 +383,8 @@
     // Finalizar compra e exibir resumo
     document.getElementById('formulario').addEventListener('submit', async function (e) {
       e.preventDefault();
+      const idCompra = 'COMPRA-' + Date.now(); // ou use UUID se quiser
+
       const qtd = parseInt(document.getElementById('quantidade').value);
       let total = 0;
       let html = '';
@@ -466,6 +468,9 @@ try {
         }
 
         alert('Dados enviados para o Google Sheets com sucesso!');
+
+        // Adiciona informações locais após envio
+dados.push({ nome, cpf, nascimento: nasc, tipo, status_pagamento: 'Pendente', id_compra });
       } catch (error) {
         console.error('Erro ao enviar dados para o Google Sheets:', error);
         alert('Erro ao enviar dados para a planilha.');

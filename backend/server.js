@@ -91,11 +91,12 @@ app.post('/webhook', async (req, res) => {
     const payment = await mercadopago.payment.findById(paymentId);
 
     if (payment.body.status === 'approved') {
-      const nome = payment.body.payer.first_name;
-      const cpf = payment.body.payer.identification.number;
+      await fetch('https://churrasco-uawh.onrender.com/confirmar-compra', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_compra })
+    });
 
-      // Atualizar o status na planilha
-      await atualizarStatusPagamento(nome, cpf);
     }
 
     res.sendStatus(200);
@@ -104,6 +105,47 @@ app.post('/webhook', async (req, res) => {
     res.sendStatus(500);
   }
 });
+
+app.post('/confirmar-compra', async (req, res) => {
+  const { id_compra } = req.body;
+
+  try {
+    const auth = new google.auth.GoogleAuth({
+      credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
+      scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
+    const range = 'Página1!A2:F'; // ajuste conforme o layout
+
+    const resposta = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range
+    });
+
+    const linhas = resposta.data.values;
+    const novasLinhas = linhas.map((linha, i) => {
+      if (linha[5] === id_compra) {
+        linha[4] = 'Aprovado'; // coluna E = status
+      }
+      return linha;
+    });
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: 'Página1!A2:F',
+      valueInputOption: 'RAW',
+      requestBody: { values: novasLinhas }
+    });
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('Erro ao confirmar compra:', err);
+    res.status(500).send('Erro ao confirmar compra');
+  }
+});
+
 
 
 const PORT = process.env.PORT || 3000;
