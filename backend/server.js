@@ -124,34 +124,32 @@ app.post('/confirmar-compra', async (req, res) => {
   const { id_compra } = req.body;
 
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets']
-    });
-
-    const sheets = google.sheets({ version: 'v4', auth });
+    const client = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: client });
     const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
-    const range = 'Página1!A2:F'; // ajuste conforme o layout
 
+    const range = 'Página1!A2:F';
     const resposta = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range
     });
 
     const linhas = resposta.data.values;
-    const novasLinhas = linhas.map((linha, i) => {
-      if (linha[5] === id_compra) {
-        linha[4] = 'Aprovado'; // coluna E = status
-      }
-      return linha;
-    });
 
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range: 'Página1!A2:F',
-      valueInputOption: 'RAW',
-      requestBody: { values: novasLinhas }
-    });
+    for (let i = 0; i < linhas.length; i++) {
+      const linha = linhas[i];
+      if (linha[5] === id_compra) {
+        linha[4] = 'Aprovado'; // Coluna E
+        const linhaRange = `Página1!A${i + 2}:F${i + 2}`; // linha + 2 por conta do cabeçalho
+
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: linhaRange,
+          valueInputOption: 'RAW',
+          requestBody: { values: [linha] }
+        });
+      }
+    }
 
     res.sendStatus(200);
   } catch (err) {
