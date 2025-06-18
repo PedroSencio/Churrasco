@@ -342,9 +342,14 @@
 
   for (let i = 1; i <= qtd; i++) {
     const tipo = document.getElementById(`tipo_${i}`).value;
-    if (tipo === "1") valorTotal += 1;
+    if (tipo === "1") valorTotal += 90; // Corrige o valor para R$90
     else if (tipo === "2") valorTotal += 70;
     else if (tipo === "3") valorTotal += 60;
+  }
+
+  if (valorTotal < 5) {
+    alert("O valor mínimo para pagamento via Pix é R$ 5,00.");
+    return;
   }
 
   const dados = {
