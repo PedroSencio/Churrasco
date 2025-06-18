@@ -294,8 +294,8 @@
       <div class="resumo-box" id="detalhes-resumo"></div>
       <div class="pix-box">
         <p><strong>Pagamento via Pix</strong></p>
-        <p>Chave Pix: 36384701804</p>
-        <p>Nome do recebedor: Anna Beatriz Botin da Silva</p>
+        <p>Chave Pix: (14)997969064</p>
+        <p>Nome do recebedor: Pedro Henrique Sencio</p>
         <div id="resultado"></div>
 
       </div>
@@ -381,7 +381,7 @@
     });
 
     // Finalizar compra e exibir resumo
-    document.getElementById('formulario').addEventListener('submit', function (e) {
+    document.getElementById('formulario').addEventListener('submit', async function (e) {
       e.preventDefault();
       const qtd = parseInt(document.getElementById('quantidade').value);
       let total = 0;
@@ -400,10 +400,36 @@
       document.getElementById('detalhes-resumo').innerHTML = html;
       document.getElementById('form-compra').style.display = 'none';
       document.getElementById('resumo-final').style.display = 'block';
+
+      // Exibir mensagem de carregamento
+      const pixBox = document.querySelector('.pix-box');
+      pixBox.innerHTML = '<p>Carregando...</p>';
+
+      // Requisição para gerar QR Code Pix
+      try {
+        const response = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao gerar QR Code Pix');
+        }
+
+        const data = await response.json();
+        pixBox.innerHTML = `
+          <p><strong>Pagamento via Pix</strong></p>
+          <img src="${data.qr_code_base64}" alt="QR Code para pagamento via Pix" />
+          <p><strong>Código Copia e Cola:</strong> ${data.qr_code}</p>
+        `;
+      } catch (error) {
+        console.error('Erro ao obter QR Code Pix:', error);
+        pixBox.innerHTML = '<p>Erro ao carregar o Pix. Tente novamente mais tarde.</p>';
+      }
     });
 
     // Enviar para planilha e WhatsApp
-    document.getElementById('confirmar-btn').addEventListener('click', () => {
+    document.getElementById('confirmar-btn').addEventListener('click', async () => {
       const qtd = parseInt(document.getElementById('quantidade').value);
       const dados = [];
       let msg = 'Nova compra de ingressos:%0A';
@@ -413,19 +439,27 @@
         const cpf = document.getElementById(`cpf_${i}`).value.trim();
         const nasc = document.getElementById(`dtnasc_${i}`).value;
         const tipo = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
-        dados.push({ nome, cpf, nascimento: nasc, tipo });
-        msg += `%0AIngresso ${i} - ${tipo}%0ANome: ${nome}%0ACPF: ${cpf}%0ANasc: ${nasc}%0A`;
+        dados.push({ nome, cpf, nascimento: nasc, tipo, status_pagamento: 'Confirmado' });
+        msg += `%0AIngresso ${i} - ${tipo}%0ANome: ${nome}%0ACPF: ${cpf}%0ANasc: ${nasc}%0AStatus: Confirmado%0A`;
       }
 
       // Envia para backend (Google Sheets)
-      fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
+      try {
+        const response = await fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados),
+        });
 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dados),
-      }).then(res => {
-        if (!res.ok) alert('Erro ao enviar dados para a planilha.');
-      });
+        if (!response.ok) {
+          throw new Error('Erro ao enviar dados para a planilha.');
+        }
+
+        alert('Dados enviados para o Google Sheets com sucesso!');
+      } catch (error) {
+        console.error('Erro ao enviar dados para o Google Sheets:', error);
+        alert('Erro ao enviar dados para a planilha.');
+      }
 
       // Abre WhatsApp
       window.open(`https://wa.me/5514988348453?text=${msg}`, '_blank');

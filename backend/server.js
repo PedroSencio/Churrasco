@@ -28,11 +28,12 @@ app.post('/atualizar-sheets', async (req, res) => {
     const client = await auth.getClient();
     const sheets = google.sheets({ version: 'v4', auth: client });
 
-    const values = req.body.map(({ nome, cpf, nascimento, tipo }) => [
+    const values = req.body.map(({ nome, cpf, nascimento, tipo, status_pagamento }) => [
       nome,
       cpf,
       nascimento,
       tipo,
+      status_pagamento,
     ]);
 
     await sheets.spreadsheets.values.append({
