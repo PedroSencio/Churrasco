@@ -60,11 +60,11 @@ app.post('/gerar-pix', async (req, res) => {
     const { nome, cpf, email, id_compra } = req.body;
 
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: parseFloat(req.body.valor),
+      transaction_amount: req.body.valor,
       description: `Ingresso - ${nome}`,
       payment_method_id: 'pix',
       payer: {
-        email: email || 'exemplo@gmail.com',
+        email: email || "comprador@example.com",
         first_name: nome,
         identification: {
           type: 'CPF',
@@ -72,8 +72,6 @@ app.post('/gerar-pix', async (req, res) => {
         },
       },
     });
-
-    console.log("Tipo de valor recebido:", typeof req.body.valor);
 
     const paymentId = pagamento.body.id;
     pagamentosPendentes.set(paymentId, id_compra);
@@ -91,8 +89,9 @@ app.post('/gerar-pix', async (req, res) => {
       resource: {
         values: [[
           nome,
-          cpf,        // nascimento (poderia vir do req.body se desejar)
-          tipo,  // tipo (ou outro valor se desejar enviar)
+          cpf,
+          "",        // nascimento (poderia vir do req.body se desejar)
+          "Adulto",  // tipo (ou outro valor se desejar enviar)
           "Pendente",
           id_compra,
           paymentId
