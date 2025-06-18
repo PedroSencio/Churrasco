@@ -305,6 +305,12 @@
 
   </div>
 
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+  <script>
+    const mp = new MercadoPago('SUA_PUBLIC_KEY_PRODUCAO');
+    const deviceId = mp.device().getId();
+    sessionStorage.setItem("device_id", deviceId);
+  </script>
   <script>
     let dados = [];
 
@@ -447,7 +453,13 @@
         const paymentResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome: dados[0].nome, cpf: dados[0].cpf, valor: total, id_compra: idCompraGlobal }),
+          body: JSON.stringify({
+            nome: dados[0].nome,
+            cpf: dados[0].cpf,
+            valor: total,
+            id_compra: idCompraGlobal,
+            device_id: sessionStorage.getItem("device_id")
+          }),
         });
 
         const data = await paymentResponse.json();
