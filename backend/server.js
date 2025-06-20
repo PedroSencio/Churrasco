@@ -18,7 +18,7 @@ const auth = new google.auth.GoogleAuth({
 
 // Configuração Mercado Pago V1
 mercadopago.configure({
-  access_token: process.env.MERCADO_PAGO_TOKEN,
+  MERCADO_PAGO_TOKEN: 'APP_USR-353925293894264-061720-a3575a7163214becd16668024e0f4d36-568402986',
 });
 
 const pagamentosPendentes = new Map();
@@ -63,7 +63,7 @@ app.post('/gerar-pix', async (req, res) => {
       transaction_amount: parseFloat(valor),
       description: `Ingresso - Churrasco Eng em Formação`,
       payment_method_id: 'pix',
-      notification_url: 'https://seusite.com/webhook', // ou seu webhook real
+      notification_url: 'https://churrasco-uawh.onrender.com/webhook', // ou seu webhook real
 
       payer: {
         email: email || 'comprador@example.com',
