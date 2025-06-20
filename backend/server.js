@@ -18,8 +18,9 @@ const auth = new google.auth.GoogleAuth({
 
 // Configuração Mercado Pago V1
 mercadopago.configure({
-  MERCADO_PAGO_TOKEN: 'APP_USR-353925293894264-061720-a3575a7163214becd16668024e0f4d36-568402986',
+  access_token: 'APP_USR-353925293894264-061720-a3575a7163214becd16668024e0f4d36-568402986'
 });
+
 
 const pagamentosPendentes = new Map();
 
