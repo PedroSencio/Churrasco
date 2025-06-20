@@ -64,7 +64,7 @@ app.post('/gerar-pix', async (req, res) => {
     const valor = tipo === "1" ? 90 : tipo === "2" ? 70 : 60;
 
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: valor,
+      transaction_amount: parseFloat(valor),
       description: `Ingresso - Churrasco Eng em Formação`,
       payment_method_id: 'pix',
       notification_url: 'https://churrasco-uawh.onrender.com/webhook',
@@ -98,7 +98,7 @@ app.post('/gerar-pix', async (req, res) => {
           title: "Ingresso Churrasco Eng",
           description: "Ingresso para o evento Churrasco Eng em Formação - 23/08/2025",
           quantity: 1,
-          unit_price: valor,
+          unit_price: parseFloat(valor),
           category_id: "tickets" // Categoria de eventos
         }
       ]
