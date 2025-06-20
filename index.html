@@ -213,6 +213,10 @@
     background-color: #339af0;
   }
 
+  #form-pagamento {
+    display: none;
+  }
+
   @media screen and (max-width: 600px) {
     .container {
       padding: 16px;
@@ -309,61 +313,6 @@
   </div>
 
   <script src="https://sdk.mercadopago.com/js/v2"></script>
-  <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const mp = new MercadoPago('SUA_PUBLIC_KEY_PRODUCAO', {
-      locale: 'pt-BR'
-    });
-
-    const cardForm = mp.fields.create('cardForm', {
-      amount: 100, // ou valor do ingresso
-      iframe: true,
-      fields: {
-        cardholderName: {
-          id: 'form-card-holder',
-          placeholder: 'Titular do cartão'
-        },
-        cardNumber: {
-          id: 'form-card-number',
-          placeholder: 'Número do cartão'
-        },
-        expirationDate: {
-          id: 'form-expiration-date',
-          placeholder: 'MM/AA'
-        },
-        securityCode: {
-          id: 'form-security-code',
-          placeholder: 'CVV'
-        }
-      },
-      callbacks: {
-        onFormMounted: error => {
-          if (error) console.warn('Erro ao montar o formulário:', error);
-        },
-        onSubmit: async (event) => {
-          event.preventDefault();
-
-          const {
-            token,
-            formData
-          } = await cardForm.submit();
-
-          // Aqui você envia os dados para seu backend
-          console.log(token, formData);
-        }
-      }
-    });
-  });
-  </script>
-
-<form id="form-pagamento">
-  <input type="text" id="form-card-holder" placeholder="Titular do cartão" />
-  <div id="form-card-number"></div>
-  <div id="form-expiration-date"></div>
-  <div id="form-security-code"></div>
-  <button type="submit">Pagar</button>
-</form>
-
   <script>
   // Função para validar CPF
     function validarCPF(cpf) {
