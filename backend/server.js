@@ -57,10 +57,10 @@ app.post('/gerar-pix', async (req, res) => {
   try {
     console.log("📦 Dados recebidos para PIX:", req.body);
 
-    const { nome, cpf, email, id_compra, valor } = req.body;
+    const { nome, cpf, email, id_compra } = req.body;
 
     const pagamento = await mercadopago.payment.create({
-      transaction_amount: parseFloat(valor), // ✅ valor numérico
+      transaction_amount: req.body.valor,
       description: `Ingresso - ${nome}`,
       payment_method_id: 'pix',
       payer: {
@@ -70,7 +70,7 @@ app.post('/gerar-pix', async (req, res) => {
           type: 'CPF',
           number: cpf.replace(/\D/g, '').slice(0, 11),
         },
-      }
+      },
     });
 
     const paymentId = pagamento.body.id;
@@ -78,7 +78,6 @@ app.post('/gerar-pix', async (req, res) => {
 
     const dados = pagamento.response.point_of_interaction.transaction_data;
 
-    // Envia para planilha
     const client = await auth.getClient();
     const sheets = google.sheets({ version: 'v4', auth: client });
     const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
@@ -91,27 +90,25 @@ app.post('/gerar-pix', async (req, res) => {
         values: [[
           nome,
           cpf,
-          '', // nascimento (opcional, pode ajustar se quiser incluir)
-          'Adulto',
-          'Pendente',
+          "",        // nascimento (poderia vir do req.body se desejar)
+          "Adulto",  // tipo (ou outro valor se desejar enviar)
+          "Pendente",
           id_compra,
           paymentId
         ]]
       }
     });
 
-    // Resposta com QR Code e payment_id
     res.json({
       qr_code: dados.qr_code,
       qr_code_base64: dados.qr_code_base64,
-      payment_id: paymentId
+      payment_id: paymentId // Adiciona o payment_id na resposta
     });
   } catch (error) {
-    console.error('❌ Erro ao gerar Pix:', error.response?.data || error.message || error);
+    console.error('Erro ao gerar Pix:', error);
     res.status(500).send({ error: 'Erro ao gerar Pix' });
   }
 });
-
 
 app.post('/webhook', async (req, res) => {
   console.log('🔥 Webhook recebido!', req.body);

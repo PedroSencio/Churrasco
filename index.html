@@ -425,7 +425,8 @@
         const nome = document.getElementById(`nome_${i}`).value.trim();
         const cpf = document.getElementById(`cpf_${i}`).value.trim().replace(/\D/g, '');
         const nasc = document.getElementById(`dtnasc_${i}`).value;
-        const tipo = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
+        const tipo = document.getElementById(`tipo_${i}`).value;
+        const tipoTexto = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
 
         if (!validarCPF(cpf)) {
           alert(`CPF inválido no ingresso ${i}`);
@@ -436,7 +437,7 @@
 
         const valor = tipo === "Adulto (com bebida) - R$90" ? 90 : tipo === "Adulto (sem bebida) - R$70" ? 70 : 60;
         total += valor;
-        html += `<p><strong>Ingresso ${i}:</strong> ${tipo}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
+        html += `<p><strong>Ingresso ${i}:</strong> ${tipoTexto}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
       }
       html += `<p><strong>Total: R$${total}</strong></p>`;
       document.getElementById('detalhes-resumo').innerHTML = html;
@@ -445,10 +446,12 @@
 
       // Requisição para gerar QR Code Pix
       try {
+        const { nome, cpf, tipo } = dados[0];
+
         const paymentResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome: dados[0].nome, cpf: dados[0].cpf, valor: total, id_compra: idCompraGlobal, tipo }),
+          body: JSON.stringify({ nome, cpf, valor: total, id_compra: idCompraGlobal, tipo }),
         });
 
         if (!paymentResponse.ok) {
