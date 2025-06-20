@@ -64,10 +64,9 @@ app.post('/gerar-pix', async (req, res) => {
       transaction_amount: parseFloat(valor),
       description: `Ingresso - Churrasco Eng em Formação`,
       payment_method_id: 'pix',
-      notification_url: 'https://churrasco-uawh.onrender.com/webhook', // ou seu webhook real
-
+      notification_url: 'https://churrasco-uawh.onrender.com/webhook',
       payer: {
-        email: email || 'comprador@example.com',
+        email: email,
         first_name: nome.split(' ')[0],
         last_name: nome.split(' ').slice(1).join(' ') || 'NãoInformado',
         identification: {
@@ -86,7 +85,17 @@ app.post('/gerar-pix', async (req, res) => {
           area_code: '14',
           number: '988348453'
         }
-      }
+      },
+      items: [
+        {
+          id: `ingresso_${id_compra}`,
+          title: `Ingresso ${tipo}`,
+          description: `Ingresso ${tipo} para o evento de engenharia.`,
+          category_id: 'tickets',
+          quantity: 1,
+          unit_price: parseFloat(valor)
+        }
+      ]
     });
 
     const paymentId = pagamento.body.id;
@@ -128,7 +137,7 @@ app.post('/gerar-pix', async (req, res) => {
 
 app.post('/webhook', async (req, res) => {
   console.log('🔥 Webhook recebido!', req.body);
-  const paymentId = req.body.data?.id;
+  const paymentId = req.body.data?.id || req.body.resource?.split('/').pop();
 
   try {
     const payment = await mercadopago.payment.findById(paymentId);
