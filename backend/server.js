@@ -58,17 +58,19 @@ app.post('/gerar-pix', async (req, res) => {
   try {
     console.log("📦 Dados recebidos para PIX:", req.body);
 
-    const { nome, cpf, email, id_compra, valor } = req.body;
+    const { nome, sobrenome, cpf, email, id_compra, valor, deviceId } = req.body;
 
     const pagamento = await mercadopago.payment.create({
       transaction_amount: parseFloat(valor),
       description: `Ingresso - Churrasco Eng em Formação`,
       payment_method_id: 'pix',
       notification_url: 'https://churrasco-uawh.onrender.com/webhook',
+      external_reference: id_compra, // ← Importante para rastrear internamente
+
       payer: {
-        email: email,
-        first_name: nome.split(' ')[0],
-        last_name: nome.split(' ').slice(1).join(' ') || 'NãoInformado',
+        email: email || 'comprador@example.com',
+        first_name: nome,
+        last_name: sobrenome || 'NãoInformado',
         identification: {
           type: 'CPF',
           number: cpf.replace(/\D/g, '')
@@ -86,14 +88,15 @@ app.post('/gerar-pix', async (req, res) => {
           number: '988348453'
         }
       },
+
       items: [
         {
-          id: `ingresso_${id_compra}`,
-          title: `Ingresso ${tipo}`,
-          description: `Ingresso ${tipo} para o evento de engenharia.`,
-          category_id: 'tickets',
+          id: id_compra, // Código interno do item
+          title: "Ingresso Churrasco Eng",
+          description: "Ingresso para o evento Churrasco Eng em Formação - 23/08/2025",
           quantity: 1,
-          unit_price: parseFloat(valor)
+          unit_price: parseFloat(valor),
+          category_id: "tickets" // Categoria de eventos
         }
       ]
     });
@@ -137,7 +140,7 @@ app.post('/gerar-pix', async (req, res) => {
 
 app.post('/webhook', async (req, res) => {
   console.log('🔥 Webhook recebido!', req.body);
-  const paymentId = req.body.data?.id || req.body.resource?.split('/').pop();
+  const paymentId = req.body.data?.id;
 
   try {
     const payment = await mercadopago.payment.findById(paymentId);
@@ -211,6 +214,46 @@ app.post('/confirmar-compra', async (req, res) => {
   } catch (err) {
     console.error('Erro ao confirmar compra:', err);
     res.status(500).send('Erro ao confirmar compra');
+  }
+});
+
+app.post('/processar-pagamento', async (req, res) => {
+  try {
+    const {
+      token,
+      transaction_amount,
+      payment_method_id,
+      installments,
+      issuer_id,
+      email,
+      identificationType,
+      identificationNumber
+    } = req.body;
+
+    const pagamento = await mercadopago.payment.create({
+      transaction_amount: parseFloat(transaction_amount),
+      token: token, // Token gerado pelos Secure Fields
+      description: `Ingresso - Churrasco Eng em Formação`,
+      payment_method_id: payment_method_id,
+      installments: parseInt(installments),
+      issuer_id: issuer_id,
+      payer: {
+        email: email,
+        identification: {
+          type: identificationType,
+          number: identificationNumber
+        }
+      }
+    });
+
+    res.status(200).json({
+      status: pagamento.body.status,
+      status_detail: pagamento.body.status_detail,
+      id: pagamento.body.id
+    });
+  } catch (error) {
+    console.error('Erro ao processar pagamento:', error);
+    res.status(500).send({ error: 'Erro ao processar pagamento' });
   }
 });
 
