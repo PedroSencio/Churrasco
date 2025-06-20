@@ -68,24 +68,24 @@ app.post('/gerar-pix', async (req, res) => {
       external_reference: id_compra, // ← Importante para rastrear internamente
 
       payer: {
-        email: email || 'comprador@example.com',
+        email: email || 'pedrosencio2309@gmail.com',
         first_name: nome,
-        last_name: sobrenome || 'NãoInformado',
+        last_name: sobrenome || 'Sencio',
         identification: {
           type: 'CPF',
           number: cpf.replace(/\D/g, '')
         },
         address: {
-          zip_code: '19900000',
-          street_name: 'Rua Exemplo',
-          street_number: '123',
-          neighborhood: 'Centro',
+          zip_code: '19901732',
+          street_name: 'Aurora Gonçalves Custódio',
+          street_number: '204',
+          neighborhood: 'Oriental',
           city: 'Ourinhos',
           federal_unit: 'SP'
         },
         phone: {
           area_code: '14',
-          number: '988348453'
+          number: '997969064'
         }
       },
 
