@@ -90,18 +90,7 @@ app.post('/gerar-pix', async (req, res) => {
           area_code: '14',
           number: '997969064'
         }
-      },
-
-      items: [
-        {
-          id: id_compra, // Código interno do item
-          title: "Ingresso Churrasco Eng",
-          description: "Ingresso para o evento Churrasco Eng em Formação - 23/08/2025",
-          quantity: 1,
-          unit_price: parseFloat(valor),
-          category_id: "tickets" // Categoria de eventos
-        }
-      ]
+      }
     });
 
     const paymentId = pagamento.body.id;
