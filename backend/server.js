@@ -86,18 +86,7 @@ app.post('/gerar-pix', async (req, res) => {
           area_code: '14',
           number: '988348453'
         }
-      },
-
-      items: [
-        {
-          id: 'ingresso_1',
-          title: 'Ingresso Adulto (com bebida)',
-          description: 'Ingresso completo para churrasco com bebida inclusa',
-          category_id: 'tickets',
-          quantity: 1,
-          unit_price: parseFloat(valor)
-        }
-      ]
+      }
     });
 
     const paymentId = pagamento.body.id;
