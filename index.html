@@ -532,130 +532,74 @@
       window.open(link, '_blank');
     });
 
+    let total = 0; // Variável global para armazenar o valor total
+
     document.addEventListener('DOMContentLoaded', () => {
       const mp = new MercadoPago('APP_USR-47f95aa4-dfae-4982-9ec5-90d1c775f181', {
         locale: 'pt-BR'
       });
 
       const cardForm = mp.cardForm({
-        amount: total, // valor dinâmico baseado na compra
+        amount: String(total || 100.00), // Usa total se já tiver, senão 100
         autoMount: true,
         form: {
-          id: 'form-id',
+          id: "form-id", // deve existir no HTML
           cardholderName: {
-            id: 'form-card-holder',
-            placeholder: 'Titular do cartão'
+            id: "form-card-holder",
+            placeholder: "Nome no cartão"
+          },
+          cardholderEmail: {
+            id: "form-card-email",
+            placeholder: "Email"
           },
           cardNumber: {
-            id: 'form-card-number',
-            placeholder: 'Número do cartão'
+            id: "form-card-number",
+            placeholder: "Número do cartão"
           },
           expirationDate: {
-            id: 'form-expiration-date',
-            placeholder: 'MM/AA'
+            id: "form-expiration-date",
+            placeholder: "MM/AA"
           },
           securityCode: {
-            id: 'form-security-code',
-            placeholder: 'CVV'
+            id: "form-security-code",
+            placeholder: "CVV"
+          },
+          installments: {
+            id: "form-installments"
+          },
+          identificationType: {
+            id: "form-doc-type"
+          },
+          identificationNumber: {
+            id: "form-doc-number",
+            placeholder: "CPF"
+          },
+          issuer: {
+            id: "form-issuer"
           }
         },
         callbacks: {
           onFormMounted: error => {
-            if (error) console.warn('Erro ao montar o formulário:', error);
+            if (error) console.warn("Erro ao montar o formulário:", error);
           },
           onSubmit: async event => {
             event.preventDefault();
-            const { deviceId, token, paymentMethodId, installments, issuerId, cardholderEmail, identificationNumber, identificationType } = cardForm.getCardFormData();
 
-            const body = {
+            const {
               token,
-              transaction_amount: total, // valor dinâmico baseado na compra
-              payment_method_id: paymentMethodId,
+              paymentMethodId,
+              issuerId,
               installments,
-              issuer_id: issuerId,
-              email: cardholderEmail,
               identificationNumber,
               identificationType,
+              cardholderEmail,
               deviceId
-            };
+            } = cardForm.getCardFormData();
 
-            const res = await fetch('https://churrasco-uawh.onrender.com/processar-pagamento', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(body)
-            });
-
-            const resultado = await res.json();
-            console.log(resultado);
+            // Aqui você envia pro backend
           }
         }
       });
-    });
-
-    mp.getIdentificationTypes();
-
-    const cardForm = mp.cardForm({
-      amount: "100.00", // valor fixo ou dinâmico
-      autoMount: true,
-      form: {
-        id: "form-id",
-        cardholderName: { id: "form-card-holder", placeholder: "Nome completo" },
-        cardholderEmail: { id: "form-card-email", placeholder: "Email" },
-        cardNumber: { id: "form-card-number", placeholder: "Número do cartão" },
-        expirationDate: { id: "form-expiration-date", placeholder: "MM/AA" },
-        securityCode: { id: "form-security-code", placeholder: "CVV" },
-        installments: { id: "form-installments" },
-        identificationType: { id: "form-doc-type" },
-        identificationNumber: { id: "form-doc-number", placeholder: "CPF" },
-        issuer: { id: "form-issuer" }
-      },
-      callbacks: {
-        onFormMounted: error => {
-          if (error) return console.warn("Erro ao montar o formulário:", error);
-        },
-        onSubmit: async event => {
-          event.preventDefault();
-
-          const {
-            token,
-            paymentMethodId,
-            issuerId,
-            installments,
-            identificationNumber,
-            identificationType,
-            cardholderEmail,
-            deviceId
-          } = cardForm.getCardFormData();
-
-          try {
-            const resposta = await fetch("https://churrasco-uawh.onrender.com/processar-pagamento", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                token,
-                transaction_amount: 100.00, // ou valor real
-                payment_method_id: paymentMethodId,
-                installments,
-                issuer_id: issuerId,
-                email: cardholderEmail,
-                identificationType,
-                identificationNumber,
-                deviceId
-              })
-            });
-
-            const resultado = await resposta.json();
-
-            document.getElementById("resultado-cartao").innerHTML = `
-              <p><strong>Status:</strong> ${resultado.status}</p>
-              <p><strong>Detalhe:</strong> ${resultado.status_detail}</p>
-              <p><strong>ID:</strong> ${resultado.id}</p>
-            `;
-          } catch (err) {
-            document.getElementById("resultado-cartao").innerHTML = `<p>Erro: ${err.message}</p>`;
-          }
-        }
-      }
     });
   </script>
 </body>
