@@ -440,7 +440,7 @@
 
         dados.push({ nome, cpf, nascimento: nasc, tipo, status_pagamento: 'Pendente', id_compra: idCompraGlobal });
 
-        const valor = tipo === "Adulto (com bebida) - R$90" ? 90 : tipo === "Adulto (sem bebida) - R$70" ? 70 : 60;
+        const valor = tipo === "1" ? 90 : tipo === "2" ? 70 : 60; // Corrigir cálculo baseado no índice do tipo
         total += valor;
         html += `<p><strong>Ingresso ${i}:</strong> ${tipoTexto}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
       }
