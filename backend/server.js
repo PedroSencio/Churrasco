@@ -131,52 +131,48 @@ app.post('/gerar-pix', async (req, res) => {
 });
 
 app.post('/webhook', async (req, res) => {
-  try {
-    const json = req.body; // Simplificar para usar req.body diretamente
-    console.log('🔥 Webhook recebido!', json);
+  console.log('🔥 Webhook recebido!');
+  console.log(JSON.stringify(req.body, null, 2));
 
-    if (json.type !== 'payment') return res.sendStatus(200);
+  const paymentId = req.body.data?.id;
+  const pagamento = await mercadopago.payment.findById(paymentId);
+  console.log("🔎 Status:", pagamento.body.status);
 
-    const paymentId = json.data?.id;
-    const payment = await mercadopago.payment.findById(paymentId);
-
-    // ⚠️ Só processa se o pagamento estiver APROVADO
-    if (payment.response.status !== 'approved') {
-      console.log('🔁 Pagamento ainda não aprovado:', payment.response.status);
-      return res.sendStatus(200);
-    }
-
-    const client = await auth.getClient();
-    const sheets = google.sheets({ version: 'v4', auth: client });
-    const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
-
-    const range = 'Página1!A2:G';
-    const resposta = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range
-    });
-
-    const linhas = resposta.data.values;
-
-    for (let i = 0; i < linhas.length; i++) {
-      const linha = linhas[i];
-      if (linha[6] === String(paymentId)) {
-        linha[4] = 'Aprovado'; // Coluna E
-        const linhaRange = `Página1!A${i + 2}:G${i + 2}`;
-        await sheets.spreadsheets.values.update({
-          spreadsheetId,
-          range: linhaRange,
-          valueInputOption: 'RAW',
-          requestBody: { values: [linha] }
-        });
-      }
-    }
-
-    res.sendStatus(200);
-  } catch (error) {
-    console.error('❌ Erro no webhook:', error);
-    res.sendStatus(500);
+  if (pagamento.body.status !== 'approved') {
+    console.log('🔁 Pagamento ainda não aprovado:', pagamento.body.status);
+    return res.sendStatus(200);
   }
+
+  const client = await auth.getClient();
+  const sheets = google.sheets({ version: 'v4', auth: client });
+  const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
+
+  const range = 'Página1!A2:G';
+  const resposta = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range
+  });
+
+  const linhas = resposta.data.values;
+
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i];
+    if (linha[6] === String(paymentId)) {
+      linha[4] = 'Aprovado'; // coluna E
+      const linhaRange = `Página1!A${i + 2}:G${i + 2}`;
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: linhaRange,
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: [linha]
+        }
+      });
+    }
+  }
+
+  res.sendStatus(200);
 });
 
 app.post('/confirmar-compra', async (req, res) => {
