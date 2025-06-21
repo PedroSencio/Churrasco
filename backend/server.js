@@ -219,22 +219,26 @@ app.post('/processar-pagamento', async (req, res) => {
       issuer_id,
       email,
       identificationType,
-      identificationNumber
+      identificationNumber,
+      deviceId
     } = req.body;
 
     const pagamento = await mercadopago.payment.create({
       transaction_amount: parseFloat(transaction_amount),
-      token: token, // Token gerado pelos Secure Fields
-      description: `Ingresso - Churrasco Eng em Formação`,
-      payment_method_id: payment_method_id,
+      token,
+      description: "Ingresso - Churrasco Eng em Formação",
+      payment_method_id,
       installments: parseInt(installments),
-      issuer_id: issuer_id,
+      issuer_id,
       payer: {
-        email: email,
+        email,
         identification: {
           type: identificationType,
           number: identificationNumber
         }
+      },
+      device: {
+        device_id: deviceId
       }
     });
 
