@@ -531,6 +531,53 @@
       const link = `https://wa.me/5514988348453?text=${encodeURIComponent(msg)}`;
       window.open(link, '_blank');
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const mp = new MercadoPago('SUA_PUBLIC_KEY', {
+        locale: 'pt-BR'
+      });
+
+      mp.getIdentificationTypes();
+
+      const cardForm = mp.cardForm({
+        amount: '100.00',
+        autoMount: true,
+        form: {
+          id: 'form-id',
+          cardholderName: {
+            id: 'form-card-holder',
+            placeholder: 'Titular do cartão'
+          },
+          cardNumber: {
+            id: 'form-card-number',
+            placeholder: 'Número do cartão'
+          },
+          expirationDate: {
+            id: 'form-expiration-date',
+            placeholder: 'MM/AA'
+          },
+          securityCode: {
+            id: 'form-security-code',
+            placeholder: 'CVV'
+          }
+        },
+        callbacks: {
+          onFormMounted: error => {
+            if (error) console.warn('Erro ao montar o formulário:', error);
+          },
+          onSubmit: event => {
+            event.preventDefault();
+            const { deviceId } = cardForm.getCardFormData();
+
+            fetch('/processar-pagamento', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ deviceId })
+            });
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>
