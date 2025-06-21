@@ -533,11 +533,14 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-      const mp = new MercadoPago('SUA_PUBLIC_KEY', {
+      const mp = new MercadoPago('APP_USR-47f95aa4-dfae-4982-9ec5-90d1c775f181', {
         locale: 'pt-BR'
       });
 
-      mp.getIdentificationTypes();
+      mp.getIdentificationTypes()
+        .catch(err => {
+          console.error("Erro ao obter métodos de pagamento:", err);
+        });
 
       const cardForm = mp.cardForm({
         amount: '100.00',
