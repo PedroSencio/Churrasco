@@ -152,7 +152,7 @@ app.post('/webhook', async (req, res) => {
     for (let i = 0; i < linhas.length; i++) {
       const linha = linhas[i];
       if (linha[6] === String(paymentId)) {
-        linha[4] = 'Aprovado'; // Coluna E
+        linha[4] = 'Aprovado1'; // Coluna E
         const linhaRange = `Página1!A${i + 2}:G${i + 2}`; // linha + 2 por conta do cabeçalho
 
         await sheets.spreadsheets.values.update({
