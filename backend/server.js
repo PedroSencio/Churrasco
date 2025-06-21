@@ -140,6 +140,12 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     const paymentId = json.data?.id;
     const payment = await mercadopago.payment.findById(paymentId);
 
+    // ⚠️ Só processa se o pagamento estiver APROVADO
+    if (payment.response.status !== 'approved') {
+      console.log('🔁 Pagamento ainda não aprovado:', payment.response.status);
+      return res.sendStatus(200);
+    }
+
     const client = await auth.getClient();
     const sheets = google.sheets({ version: 'v4', auth: client });
     const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
