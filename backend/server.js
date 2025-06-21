@@ -76,7 +76,7 @@ app.post('/gerar-pix', async (req, res) => {
         last_name: sobrenome || 'Sencio',
         identification: {
           type: 'CPF',
-          number: cpf.replace(/\D/g, '')
+          number: cpf.replace(/[^0-9]/g, '') // Limpa o CPF para garantir que não tenha caracteres inválidos
         },
         address: {
           zip_code: '19901732',
