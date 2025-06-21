@@ -8,7 +8,25 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+// Configuração de CORS para permitir requisições do Netlify
+const corsOptions = {
+  origin: 'https://seu-frontend.netlify.app', // Substitua pelo domínio correto do Netlify
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
+
+// Adicionando logs para depuração de status 502
+app.use((req, res, next) => {
+  console.log(`📥 Requisição recebida: ${req.method} ${req.url}`);
+  next();
+});
+
+app.use((err, req, res, next) => {
+  console.error('❌ Erro no servidor:', err);
+  res.status(500).send('Erro interno do servidor');
+});
 
 // Google Sheets Auth
 const auth = new google.auth.GoogleAuth({
