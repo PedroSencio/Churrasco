@@ -130,9 +130,9 @@ app.post('/gerar-pix', async (req, res) => {
   }
 });
 
-app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+app.post('/webhook', async (req, res) => {
   try {
-    const json = JSON.parse(req.body.toString());
+    const json = req.body; // Simplificar para usar req.body diretamente
     console.log('🔥 Webhook recebido!', json);
 
     if (json.type !== 'payment') return res.sendStatus(200);
