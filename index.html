@@ -537,13 +537,8 @@
         locale: 'pt-BR'
       });
 
-      mp.getIdentificationTypes()
-        .catch(err => {
-          console.error("Erro ao obter métodos de pagamento:", err);
-        });
-
       const cardForm = mp.cardForm({
-        amount: '100.00',
+        amount: total, // valor dinâmico baseado na compra
         autoMount: true,
         form: {
           id: 'form-id',
@@ -574,7 +569,7 @@
 
             const body = {
               token,
-              transaction_amount: 100.00,
+              transaction_amount: total, // valor dinâmico baseado na compra
               payment_method_id: paymentMethodId,
               installments,
               issuer_id: issuerId,
@@ -595,10 +590,6 @@
           }
         }
       });
-    });
-
-    const mp = new MercadoPago("", {
-      locale: "pt-BR"
     });
 
     mp.getIdentificationTypes();
