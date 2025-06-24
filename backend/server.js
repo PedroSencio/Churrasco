@@ -98,7 +98,28 @@ app.post('/gerar-pix', async (req, res) => {
 
     const dados = pagamento.response.point_of_interaction.transaction_data;
 
-    // ✅ Agora não salva nada na planilha aqui (evita duplicação!)
+    // Atualizar todas as linhas com mesmo ID Compra
+    const client = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: client });
+    const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
+
+    const range = 'Página1!A2:G';
+    const resposta = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+    const linhas = resposta.data.values;
+
+    for (let i = 0; i < linhas.length; i++) {
+      const linha = linhas[i];
+      if (linha[5] === id_compra) {
+        linha[6] = String(paymentId); // coluna G = paymentId
+        const linhaRange = `Página1!A${i + 2}:G${i + 2}`;
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: linhaRange,
+          valueInputOption: 'RAW',
+          requestBody: { values: [linha] }
+        });
+      }
+    }
 
     res.json({
       qr_code: dados.qr_code,
@@ -145,9 +166,14 @@ app.post('/webhook', async (req, res) => {
     const resposta = await sheets.spreadsheets.values.get({ spreadsheetId, range });
     const linhas = resposta.data.values;
 
+    console.log(`🔍 Linhas da planilha: ${JSON.stringify(linhas)}`);
+
     for (let i = 0; i < linhas.length; i++) {
       const linha = linhas[i];
+      console.log(`🔍 Verificando linha ${i + 2}: ${JSON.stringify(linha)}`);
+
       if (linha[6] === String(paymentId)) {
+        console.log(`✅ Encontrado paymentId na linha ${i + 2}`);
         linha[4] = 'Aprovado'; // coluna E
         const linhaRange = `Página1!A${i + 2}:G${i + 2}`;
 
@@ -157,9 +183,13 @@ app.post('/webhook', async (req, res) => {
           valueInputOption: 'RAW',
           requestBody: { values: [linha] }
         });
+
+        console.log(`📒 Planilha atualizada para aprovado na linha ${i + 2}`);
         break;
       }
     }
+
+    console.log('❌ paymentId não encontrado na planilha.');
 
     res.sendStatus(200);
   } catch (error) {
