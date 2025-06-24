@@ -60,8 +60,12 @@ app.post('/gerar-pix', async (req, res) => {
 
     const { nome, sobrenome, cpf, email, id_compra, tipo } = req.body;
 
+    // Adicionando log para verificar o tipo recebido
+    console.log(`Tipo recebido: ${tipo}`);
+
     // Corrigir valor com base no tipo
     const valor = tipo === "1" ? 90 : tipo === "2" ? 70 : 60;
+    console.log(`Valor calculado: ${valor}`);
 
     const pagamento = await mercadopago.payment.create({
       transaction_amount: parseFloat(valor),
