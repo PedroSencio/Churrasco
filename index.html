@@ -456,6 +456,13 @@
     const { nome, cpf, tipo } = dados[0];
     const sobrenome = document.getElementById('sobrenome_1')?.value.trim() || '';
 
+    let valor_total = 0;
+        dados.forEach(d => {
+          if (d.tipo.includes("com bebida")) valor_total += 90;
+          else if (d.tipo.includes("sem bebida")) valor_total += 70;
+          else valor_total += 60;
+        });
+
     const paymentResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -464,7 +471,7 @@
         sobrenome,
         cpf,
         id_compra: idCompraGlobal,
-        tipo // Agora corretamente enviado como texto completo
+        valor_total
       }),
     });
 
