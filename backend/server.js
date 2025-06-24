@@ -60,7 +60,6 @@ app.post('/gerar-pix', async (req, res) => {
 
     const { nome, sobrenome, cpf, email, id_compra, valor_total } = req.body;
 
-    // Corrigir valor com base no valor_total
     const valor = parseFloat(valor_total);
     console.log(`Valor calculado: ${valor}`);
 

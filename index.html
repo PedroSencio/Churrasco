@@ -422,7 +422,6 @@
   const qtd = parseInt(document.getElementById('quantidade').value);
   let total = 0;
   let html = '';
-
   idCompraGlobal = 'COMPRA-' + Date.now();
 
   const dados = [];
@@ -431,19 +430,26 @@
     const cpf = document.getElementById(`cpf_${i}`).value.trim().replace(/\D/g, '');
     const nasc = document.getElementById(`dtnasc_${i}`).value;
     const tipoSelect = document.getElementById(`tipo_${i}`);
-    const tipo = tipoSelect.value;
-    const tipoTexto = tipoSelect.options[tipoSelect.selectedIndex].text;
+    const tipo = tipoSelect.options[tipoSelect.selectedIndex].text;
 
     if (!validarCPF(cpf)) {
       alert(`CPF inválido no ingresso ${i}`);
       return;
     }
 
-    dados.push({ nome, cpf, nascimento: nasc, tipo: tipoTexto, status_pagamento: 'Pendente', id_compra: idCompraGlobal });
-
-    const valor = tipo === "1" ? 90 : tipo === "2" ? 70 : 60;
+    const valor = tipo.includes('com bebida') ? 90 : tipo.includes('sem bebida') ? 70 : 60;
     total += valor;
-    html += `<p><strong>Ingresso ${i}:</strong> ${tipoTexto}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
+
+    html += `<p><strong>Ingresso ${i}:</strong> ${tipo}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
+
+    dados.push({
+      nome,
+      cpf,
+      nascimento: nasc,
+      tipo,
+      status_pagamento: 'Pendente',
+      id_compra: idCompraGlobal
+    });
   }
 
   html += `<p><strong>Total: R$${total}</strong></p>`;
@@ -451,56 +457,37 @@
   document.getElementById('form-compra').style.display = 'none';
   document.getElementById('resumo-final').style.display = 'block';
 
-  // Requisição para gerar QR Code Pix
-  try {
-    const { nome, cpf, tipo } = dados[0];
-    const sobrenome = document.getElementById('sobrenome_1')?.value.trim() || '';
+  // Envia todos para o backend salvar na planilha
+  await fetch('https://churrasco-uawh.onrender.com/atualizar-sheets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  });
 
-    let valor_total = 0;
-        dados.forEach(d => {
-          if (d.tipo.includes("com bebida")) valor_total += 90;
-          else if (d.tipo.includes("sem bebida")) valor_total += 70;
-          else valor_total += 60;
-        });
+  // Agora gera o PIX com o valor total
+  const { nome, cpf } = dados[0];
+  const pixResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nome,
+      sobrenome: '',
+      cpf,
+      email: 'pedrosencio2309@gmail.com',
+      id_compra: idCompraGlobal,
+      valor_total: total
+    })
+  });
 
-    const paymentResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome,
-        sobrenome,
-        cpf,
-        id_compra: idCompraGlobal,
-        valor_total
-      }),
-    });
+  const pixData = await pixResponse.json();
+  dados.forEach(d => d.payment_id = pixData.payment_id);
 
-    if (!paymentResponse.ok) {
-      const errorText = await paymentResponse.text();
-      throw new Error("Erro ao gerar Pix: " + errorText);
-    }
-
-    const data = await paymentResponse.json();
-
-    if (!data.qr_code_base64) {
-      throw new Error("QR Code não gerado. Verifique o CPF ou credenciais.");
-    }
-
-    // Adiciona o paymentId à lista de dados
-    dados.forEach(d => d.payment_id = data.payment_id);
-
-    const pixBox = document.querySelector('.pix-box');
-    pixBox.innerHTML = `
-      <p><strong>Pagamento via Pix</strong></p>
-      <img src="data:image/png;base64,${data.qr_code_base64}" alt="QR Code para pagamento via Pix" width="300" /><br><br>
-      <strong>Código Copia e Cola:</strong><br>
-      <textarea style="width:300px; height:80px">${data.qr_code}</textarea>
-    `;
-  } catch (error) {
-    console.error('Erro ao obter QR Code Pix:', error);
-    const pixBox = document.querySelector('.pix-box');
-    pixBox.innerHTML = '<p>Erro ao carregar o Pix. Tente novamente mais tarde.</p>';
-  }
+  document.querySelector('.pix-box').innerHTML = `
+    <p><strong>Pagamento via Pix</strong></p>
+    <img src="data:image/png;base64,${pixData.qr_code_base64}" width="300" /><br><br>
+    <strong>Código Copia e Cola:</strong><br>
+    <textarea style="width:300px; height:80px">${pixData.qr_code}</textarea>
+  `;
 });
 
     // Adicionar ao calendário (atualizado para Google Calendar)
