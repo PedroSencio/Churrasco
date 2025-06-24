@@ -136,28 +136,42 @@ app.post('/gerar-pix', async (req, res) => {
 
 app.post('/webhook', async (req, res) => {
   console.log('🔥 Webhook recebido!', req.body);
+
+  // Verifica se é o tipo esperado
   const paymentId = req.body.data?.id;
+  const action = req.body.action;
+
+  // Ignora eventos que não são atualização de status
+  if (req.body.type !== 'payment' || action !== 'payment.updated') {
+    console.log('🔕 Webhook ignorado: não é atualização de pagamento.');
+    return res.sendStatus(200);
+  }
 
   try {
     const payment = await mercadopago.payment.findById(paymentId);
+    const status = payment.body.status;
 
+    if (status !== 'approved') {
+      console.log(`⏳ Pagamento ${paymentId} ainda não aprovado. Status: ${status}`);
+      return res.sendStatus(200);
+    }
+
+    console.log(`✅ Pagamento aprovado: ${paymentId}`);
+
+    // Atualizar planilha
     const client = await auth.getClient();
     const sheets = google.sheets({ version: 'v4', auth: client });
     const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
 
     const range = 'Página1!A2:G';
-    const resposta = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range
-    });
-
+    const resposta = await sheets.spreadsheets.values.get({ spreadsheetId, range });
     const linhas = resposta.data.values;
 
     for (let i = 0; i < linhas.length; i++) {
       const linha = linhas[i];
       if (linha[6] === String(paymentId)) {
-        linha[4] = 'Aprovado'; // Coluna E
-        const linhaRange = `Página1!A${i + 2}:G${i + 2}`; // linha + 2 por conta do cabeçalho
+        linha[4] = 'Aprovado'; // coluna E
+        const linhaRange = `Página1!A${i + 2}:G${i + 2}`;
 
         await sheets.spreadsheets.values.update({
           spreadsheetId,
@@ -165,6 +179,7 @@ app.post('/webhook', async (req, res) => {
           valueInputOption: 'RAW',
           requestBody: { values: [linha] }
         });
+        break;
       }
     }
 
@@ -174,6 +189,7 @@ app.post('/webhook', async (req, res) => {
     res.sendStatus(500);
   }
 });
+
 
 app.post('/confirmar-compra', async (req, res) => {
   const { id_compra } = req.body;
