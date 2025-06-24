@@ -64,7 +64,7 @@ app.post('/gerar-pix', async (req, res) => {
     console.log(`Tipo recebido: ${tipo}`);
 
     // Corrigir valor com base no tipo
-    const valor = tipo === "adulto_com_bebida" ? 90 : tipo === "adulto_sem_bebida" ? 70 : 60;
+    const valor = tipo === "Adulto (com bebida) - R$90" ? 90 : tipo === "Adulto (sem bebida) - R$70" ? 70 : 60;
     console.log(`Valor calculado: ${valor}`);
 
     const pagamento = await mercadopago.payment.create({
