@@ -418,88 +418,83 @@
 
     // Finalizar compra e exibir resumo
     document.getElementById('formulario').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const qtd = parseInt(document.getElementById('quantidade').value);
-      let total = 0;
-      let html = '';
+  e.preventDefault();
+  const qtd = parseInt(document.getElementById('quantidade').value);
+  let total = 0;
+  let html = '';
 
-      idCompraGlobal = 'COMPRA-' + Date.now(); // Gera o ID global
+  idCompraGlobal = 'COMPRA-' + Date.now();
 
-      const dados = [];
-      for (let i = 1; i <= qtd; i++) {
-        const nome = document.getElementById(`nome_${i}`).value.trim();
-        const cpf = document.getElementById(`cpf_${i}`).value.trim().replace(/\D/g, '');
-        const nasc = document.getElementById(`dtnasc_${i}`).value;
-        const tipo = document.getElementById(`tipo_${i}`).value;
-        const tipoTexto = document.getElementById(`tipo_${i}`).options[document.getElementById(`tipo_${i}`).selectedIndex].text;
+  const dados = [];
+  for (let i = 1; i <= qtd; i++) {
+    const nome = document.getElementById(`nome_${i}`).value.trim();
+    const cpf = document.getElementById(`cpf_${i}`).value.trim().replace(/\D/g, '');
+    const nasc = document.getElementById(`dtnasc_${i}`).value;
+    const tipoSelect = document.getElementById(`tipo_${i}`);
+    const tipo = tipoSelect.value;
+    const tipoTexto = tipoSelect.options[tipoSelect.selectedIndex].text;
 
-        if (!validarCPF(cpf)) {
-          alert(`CPF inválido no ingresso ${i}`);
-          return;
-        }
+    if (!validarCPF(cpf)) {
+      alert(`CPF inválido no ingresso ${i}`);
+      return;
+    }
 
-        dados.push({ nome, cpf, nascimento: nasc, tipo, status_pagamento: 'Pendente', id_compra: idCompraGlobal });
+    dados.push({ nome, cpf, nascimento: nasc, tipo: tipoTexto, status_pagamento: 'Pendente', id_compra: idCompraGlobal });
 
-        const valor = tipo === "Adulto (com bebida) - R$90" ? 90 : tipo === "Adulto (sem bebida) - R$70" ? 70 : 60;
-        total += valor;
-        html += `<p><strong>Ingresso ${i}:</strong> ${tipoTexto}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
-      }
-      html += `<p><strong>Total: R$${total}</strong></p>`;
-      document.getElementById('detalhes-resumo').innerHTML = html;
-      document.getElementById('form-compra').style.display = 'none';
-      document.getElementById('resumo-final').style.display = 'block';
+    const valor = tipo === "1" ? 90 : tipo === "2" ? 70 : 60;
+    total += valor;
+    html += `<p><strong>Ingresso ${i}:</strong> ${tipoTexto}<br>Nome: ${nome}<br>CPF: ${cpf}<br>Nasc: ${nasc}<br>Valor: R$${valor}</p><hr>`;
+  }
 
-      // Requisição para gerar QR Code Pix
-      try {
-        const { nome, cpf, tipo } = dados[0];
-        const sobrenome = document.getElementById('sobrenome_1')?.value.trim() || '';
+  html += `<p><strong>Total: R$${total}</strong></p>`;
+  document.getElementById('detalhes-resumo').innerHTML = html;
+  document.getElementById('form-compra').style.display = 'none';
+  document.getElementById('resumo-final').style.display = 'block';
 
-        const paymentResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nome,
-            sobrenome, // novo campo
-            cpf,
-            valor: total,
-            id_compra: idCompraGlobal,
-            tipo
-          }),
-        });
+  // Requisição para gerar QR Code Pix
+  try {
+    const { nome, cpf, tipo } = dados[0];
+    const sobrenome = document.getElementById('sobrenome_1')?.value.trim() || '';
 
-        if (!paymentResponse.ok) {
-          const errorText = await paymentResponse.text();
-          throw new Error("Erro ao gerar Pix: " + errorText);
-        }
-
-        const data = await paymentResponse.json();
-
-        if (!data.qr_code_base64) {
-          throw new Error("QR Code não gerado. Verifique o CPF ou credenciais.");
-        }
-
-        // Adiciona o paymentId à lista de dados
-        dados.forEach(d => d.payment_id = data.payment_id);
-
-        const pixBox = document.querySelector('.pix-box');
-        pixBox.innerHTML = `
-          <p><strong>Pagamento via Pix</strong></p>
-          <img src="data:image/png;base64,${data.qr_code_base64}" alt="QR Code para pagamento via Pix" width="300" /><br><br>
-          <strong>Código Copia e Cola:</strong><br>
-          <textarea style="width:300px; height:80px">${data.qr_code}</textarea>
-        `;
-      } catch (error) {
-        console.error('Erro ao obter QR Code Pix:', error);
-        const pixBox = document.querySelector('.pix-box');
-        pixBox.innerHTML = '<p>Erro ao carregar o Pix. Tente novamente mais tarde.</p>';
-      }
+    const paymentResponse = await fetch('https://churrasco-uawh.onrender.com/gerar-pix', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome,
+        sobrenome,
+        cpf,
+        id_compra: idCompraGlobal,
+        tipo // Agora corretamente enviado como texto completo
+      }),
     });
 
-    // Botão voltar
-    document.getElementById('voltar-btn').addEventListener('click', () => {
-      document.getElementById('resumo-final').style.display = 'none';
-      document.getElementById('inicio').style.display = 'block';
-    });
+    if (!paymentResponse.ok) {
+      const errorText = await paymentResponse.text();
+      throw new Error("Erro ao gerar Pix: " + errorText);
+    }
+
+    const data = await paymentResponse.json();
+
+    if (!data.qr_code_base64) {
+      throw new Error("QR Code não gerado. Verifique o CPF ou credenciais.");
+    }
+
+    // Adiciona o paymentId à lista de dados
+    dados.forEach(d => d.payment_id = data.payment_id);
+
+    const pixBox = document.querySelector('.pix-box');
+    pixBox.innerHTML = `
+      <p><strong>Pagamento via Pix</strong></p>
+      <img src="data:image/png;base64,${data.qr_code_base64}" alt="QR Code para pagamento via Pix" width="300" /><br><br>
+      <strong>Código Copia e Cola:</strong><br>
+      <textarea style="width:300px; height:80px">${data.qr_code}</textarea>
+    `;
+  } catch (error) {
+    console.error('Erro ao obter QR Code Pix:', error);
+    const pixBox = document.querySelector('.pix-box');
+    pixBox.innerHTML = '<p>Erro ao carregar o Pix. Tente novamente mais tarde.</p>';
+  }
+});
 
     // Adicionar ao calendário (atualizado para Google Calendar)
     document.getElementById('google-calendar-link').addEventListener('click', (e) => {
