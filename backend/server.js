@@ -281,6 +281,32 @@ app.post('/processar-pagamento', async (req, res) => {
   }
 });
 
+app.get('/verificar-status/:id_compra', async (req, res) => {
+  try {
+    const { id_compra } = req.params;
+    
+    const client = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: client });
+    const spreadsheetId = '1NKD77418Q1B3nURFu53BTJ6yt5_3qZ5Y-yqSi0tOyWg';
+
+    const range = 'Página1!A2:G';
+    const resposta = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+    const linhas = resposta.data.values;
+
+    // Verifica se alguma linha com este ID de compra foi aprovada
+    const linhaAprovada = linhas.find(linha => linha[5] === id_compra && linha[4] === 'Aprovado');
+    
+    if (linhaAprovada) {
+      res.json({ status: 'aprovado' });
+    } else {
+      res.json({ status: 'pendente' });
+    }
+  } catch (error) {
+    console.error('Erro ao verificar status:', error);
+    res.status(500).json({ error: 'Erro ao verificar status' });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);

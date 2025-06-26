@@ -184,6 +184,11 @@
     color: #ccc;
     box-shadow: 0 0 6px rgba(255, 255, 255, 0.04);
   }
+  .pix-box{
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+  }
 
   .resumo-box p, .pix-box p {
     margin: 6px 0;
@@ -301,10 +306,25 @@
         <p>Chave Pix: (14)997969064</p>
         <p>Nome do recebedor: Pedro Henrique Sencio</p>
         <div id="resultado"></div>
-
       </div>
-      <button class="buy-btn" id="confirmar-btn">Confirmar Compra</button>
+      <div id="aguardando-pagamento" style="display:none; text-align:center; margin-top:20px;">
+        <p><strong>🔄 Aguardando confirmação do pagamento...</strong></p>
+        <p>Após realizar o pagamento, aguarde alguns instantes para a confirmação automática.</p>
+      </div>
       <button type="button" class="voltar-btn" id="voltar-btn-resumo">← Voltar</button>
+    </div>
+
+    <!-- Tela de Confirmação Final -->
+    <div id="confirmacao-final" style="display:none;">
+      <h1 class="title">✅ Compra Confirmada!</h1>
+      <div class="resumo-box">
+        <p><strong>🎉 Pagamento aprovado!</strong></p>
+        <p>Seus ingressos foram confirmados com sucesso!</p>
+        <div id="detalhes-confirmacao"></div>
+        <p><strong>📱 Entre em contato conosco no WhatsApp para mais informações:</strong></p>
+      </div>
+      <button class="buy-btn" id="whatsapp-btn">Enviar WhatsApp</button>
+      <button type="button" class="voltar-btn" onclick="location.reload()">← Nova Compra</button>
     </div>
 
   <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -485,7 +505,60 @@
     <strong>Código Copia e Cola:</strong><br>
     <textarea style="width:300px; height:80px">${pixData.qr_code}</textarea>
   `;
+
+  // Iniciar polling para verificar status do pagamento
+  iniciarVerificacaoPagamento(idCompraGlobal, dados);
 });
+
+    // Função para verificar status do pagamento
+    function iniciarVerificacaoPagamento(idCompra, dadosCompra) {
+      const intervalo = setInterval(async () => {
+        try {
+          const response = await fetch(`https://churrasco-uawh.onrender.com/verificar-status/${idCompra}`);
+          const result = await response.json();
+          
+          if (result.status === 'aprovado') {
+            clearInterval(intervalo);
+            mostrarConfirmacaoFinal(dadosCompra);
+          }
+        } catch (error) {
+          console.error('Erro ao verificar status:', error);
+        }
+      }, 5000); // Verifica a cada 5 segundos
+
+      // Para o polling após 10 minutos para evitar requisições indefinidas
+      setTimeout(() => {
+        clearInterval(intervalo);
+      }, 600000); // 10 minutos
+    }
+
+    // Função para mostrar tela de confirmação final
+    function mostrarConfirmacaoFinal(dadosCompra) {
+      let html = '';
+      let total = 0;
+      
+      dadosCompra.forEach((d, i) => {
+        const valor = d.tipo.includes('com bebida') ? 90 : d.tipo.includes('sem bebida') ? 70 : 60;
+        total += valor;
+        html += `<p><strong>Ingresso ${i + 1}:</strong> ${d.tipo}<br>Nome: ${d.nome}<br>CPF: ${d.cpf}<br>Nasc: ${d.nascimento}</p><hr>`;
+      });
+      
+      html += `<p><strong>Total Pago: R$${total}</strong></p>`;
+      
+      document.getElementById('detalhes-confirmacao').innerHTML = html;
+      document.getElementById('resumo-final').style.display = 'none';
+      document.getElementById('confirmacao-final').style.display = 'block';
+      
+      // Configurar botão do WhatsApp
+      document.getElementById('whatsapp-btn').onclick = () => {
+        let msg = `✅ Compra confirmada e paga!\n\n`;
+        dadosCompra.forEach((d, i) => {
+          msg += `🎟 Ingresso ${i + 1} - ${d.tipo}\n👤 ${d.nome}\n📆 ${d.nascimento}\n📎 ${d.cpf}\n\n`;
+        });
+        const link = `https://wa.me/5514988348453?text=${encodeURIComponent(msg)}`;
+        window.open(link, '_blank');
+      };
+    }
 
     // Adicionar ao calendário (atualizado para Google Calendar)
     document.getElementById('google-calendar-link').addEventListener('click', (e) => {
@@ -499,18 +572,6 @@
       const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${description}&location=${location}`;
 
       window.open(googleCalendarUrl, '_blank');
-    });
-
-    document.getElementById('confirmar-btn').addEventListener('click', () => {
-
-      let msg = `✅ Compra confirmada!\n\n`;
-      
-      dados.forEach((d, i) => {
-        msg += `🎟 Ingresso ${i + 1} - ${d.tipo}\n👤 ${d.nome}\n📆 ${d.nascimento}\n📎 ${d.cpf}\n\n`;
-      });
-
-      const link = `https://wa.me/5514988348453?text=${encodeURIComponent(msg)}`;
-      window.open(link, '_blank');
     });
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -637,6 +698,17 @@
           }
         }
       }
+    });
+
+    // Event listeners para botões de voltar
+    document.getElementById('voltar-btn-form').addEventListener('click', () => {
+      document.getElementById('form-compra').style.display = 'none';
+      document.getElementById('inicio').style.display = 'block';
+    });
+
+    document.getElementById('voltar-btn-resumo').addEventListener('click', () => {
+      document.getElementById('resumo-final').style.display = 'none';
+      document.getElementById('form-compra').style.display = 'block';
     });
   </script>
 </body>
