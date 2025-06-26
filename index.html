@@ -303,9 +303,6 @@
         <div id="resultado"></div>
 
       </div>
-      <div>
-        <input type="file" id="comprovante-pix"/>
-      </div>
       <button class="buy-btn" id="confirmar-btn">Confirmar Compra</button>
       <button type="button" class="voltar-btn" id="voltar-btn-resumo">← Voltar</button>
     </div>
@@ -507,11 +504,6 @@
     document.getElementById('confirmar-btn').addEventListener('click', () => {
 
       let msg = `✅ Compra confirmada!\n\n`;
-      cond = document.getElementById('comprovante-pix').files.length > 0;
-
-      if (cond) {
-        msg += 'por favor, anexe o comprovante de pagamento.\n\n';
-      }
       
       dados.forEach((d, i) => {
         msg += `🎟 Ingresso ${i + 1} - ${d.tipo}\n👤 ${d.nome}\n📆 ${d.nascimento}\n📎 ${d.cpf}\n\n`;
